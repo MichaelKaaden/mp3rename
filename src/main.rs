@@ -8,5 +8,5 @@ fn main() {
 
     println!("Path is {:?}", config.start_dir);
 
-    traverse_dirs(config);
+    traverse_dirs(&config);
 }
