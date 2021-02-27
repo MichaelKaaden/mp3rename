@@ -3,7 +3,7 @@ extern crate clap;
 use std::fmt::Formatter;
 use std::{env, fmt};
 
-use clap::{crate_version, App, Arg};
+use clap::{crate_authors, crate_version, App, Arg};
 
 pub struct Config {
     pub dry_run: bool,
@@ -32,7 +32,7 @@ impl Config {
         let matches = App::new("mp3bandtitle")
             // use crate_version! to pull the version number
             .version(crate_version!())
-            .author("Michael Kaaden <github@kaaden.net>")
+            .author(crate_authors!())
             .about(
                 "Traverses a directory tree and renames all music files and,
 optionally, the directories containing them according to the
