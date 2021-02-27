@@ -2,7 +2,7 @@ extern crate clap;
 
 use std::fmt::Formatter;
 use std::path::PathBuf;
-use std::{env, fmt, fs};
+use std::{env, fmt, fs, process};
 
 use clap::{crate_authors, crate_version, App, Arg};
 
@@ -98,14 +98,21 @@ tags in the music files.",
                 .unwrap_or(env::current_dir().unwrap().to_str().unwrap()),
         );
 
-        let start_dir = string_to_path(&start_dir).unwrap();
+        let start_dir = match string_to_path(&start_dir) {
+            Ok(path) => path,
+            Err(_) => {
+                eprintln!("Couldn't find the path \"{}\"", start_dir);
+                process::exit(1);
+            }
+        };
 
         let name_length = match matches.value_of(LENGTH) {
             None => 0,
             Some(num) => match num.parse::<u32>() {
                 Ok(val) => val,
                 Err(_) => {
-                    panic!("Cannot parse length \"{}\"", num)
+                    eprintln!("Cannot parse length \"{}\"", num);
+                    process::exit(1);
                 }
             },
         };
