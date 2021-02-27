@@ -1,7 +1,8 @@
 extern crate clap;
 
 use std::fmt::Formatter;
-use std::{env, fmt};
+use std::path::PathBuf;
+use std::{env, fmt, fs};
 
 use clap::{crate_authors, crate_version, App, Arg};
 
@@ -13,7 +14,7 @@ pub struct Config {
     pub rename_directory: bool,
     pub replace_underscores: bool,
     pub shorten_names: bool,
-    pub start_dir: String,
+    pub start_dir: PathBuf,
     pub use_fatfs_names: bool,
 }
 
@@ -97,6 +98,8 @@ tags in the music files.",
                 .unwrap_or(env::current_dir().unwrap().to_str().unwrap()),
         );
 
+        let start_dir = string_to_path(&start_dir).unwrap();
+
         let name_length = match matches.value_of(LENGTH) {
             None => 0,
             Some(num) => match num.parse::<u32>() {
@@ -124,7 +127,7 @@ tags in the music files.",
 impl fmt::Display for Config {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "Dry run:                  {:?}", self.dry_run)?;
-        writeln!(f, "Using path                {}", self.start_dir)?;
+        writeln!(f, "Using path                {:?}", self.start_dir)?;
         writeln!(f, "Name length limit:        {:?}", self.name_length)?;
         writeln!(f, "Remove artist:            {:?}", self.remove_artist)?;
         writeln!(
@@ -141,4 +144,8 @@ impl fmt::Display for Config {
         writeln!(f, "Shorten names:            {:?}", self.shorten_names)?;
         writeln!(f, "Use FAT-compatible names: {:?}", self.use_fatfs_names)
     }
+}
+
+fn string_to_path(file_name: &str) -> std::io::Result<PathBuf> {
+    fs::canonicalize(PathBuf::from(file_name))
 }

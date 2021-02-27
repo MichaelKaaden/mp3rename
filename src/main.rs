@@ -6,4 +6,6 @@ fn main() {
     let config = Config::new();
 
     println!("The config is: \n{}", config);
+
+    println!("Path is {:?}", config.start_dir);
 }
