@@ -11,7 +11,7 @@ pub fn traverse_dirs(config: &Config) {
     {
         match entry {
             Ok(e) => println!("{}", e.path().display()),
-            Err(e) => eprintln!("{}", e),
+            Err(e) => eprintln!("Error traversing directories: {}", e),
         };
     }
 }
