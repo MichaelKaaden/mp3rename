@@ -1,5 +1,5 @@
 use mp3bandtitle::config::Config;
-use mp3bandtitle::traverse_dirs;
+use mp3bandtitle::get_list_of_dirs;
 
 fn main() {
     let config = Config::new();
@@ -8,5 +8,12 @@ fn main() {
 
     println!("Path is {:?}", config.start_dir);
 
-    traverse_dirs(&config);
+    let entries = get_list_of_dirs(&config);
+    println!("get_list_of_dirs() finished");
+    for entry in entries {
+        match entry {
+            Ok(e) => println!("Got {}", e.path().display()),
+            Err(err) => eprintln!("Error iterating: {}", err),
+        }
+    }
 }

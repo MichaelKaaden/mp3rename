@@ -1,17 +1,19 @@
-use walkdir::WalkDir;
+use walkdir::{DirEntry, Error, WalkDir};
 
 use crate::config::Config;
 
 pub mod config;
 
-pub fn traverse_dirs(config: &Config) {
-    for entry in WalkDir::new(&config.start_dir)
+pub fn get_list_of_dirs(config: &Config) -> Vec<Result<DirEntry, Error>> {
+    WalkDir::new(&config.start_dir)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir())
-    {
-        match entry {
-            Ok(e) => println!("{}", e.path().display()),
-            Err(e) => eprintln!("Error traversing directories: {}", e),
-        };
-    }
+        .filter(|e| match e {
+            Ok(_) => true,
+            Err(err) => {
+                eprintln!("Error traversing directories: {}", err);
+                false
+            }
+        })
+        .collect()
 }
