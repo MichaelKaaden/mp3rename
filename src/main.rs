@@ -11,7 +11,7 @@ fn main() {
 
     let entries = get_list_of_dirs(&config);
     println!("get_list_of_dirs() finished");
-    for entry in entries {
+    for entry in &entries {
         println!("Got {}", entry.path().display());
     }
 }
