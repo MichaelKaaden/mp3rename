@@ -9,6 +9,8 @@ pub fn get_list_of_dirs(config: &Config) -> Vec<DirEntry> {
     WalkDir::new(&config.start_dir)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir())
+        // cannot print warnings
+        //.filter_map(Result::ok)
         // filter and report errors
         .filter(|e| match e {
             Ok(_) => true,
