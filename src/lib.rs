@@ -14,7 +14,7 @@ pub struct DirContents {
 }
 
 impl DirContents {
-    pub fn new(config: &Config) -> io::Result<Vec<DirContents>> {
+    pub fn new(config: &Config) -> Vec<DirContents> {
         let entries = get_list_of_dirs(&config);
         get_dirs_with_music(entries)
     }
@@ -41,32 +41,36 @@ fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
 }
 
 /// Returns directories containing music files
-fn get_dirs_with_music(dirs: Vec<walkdir::DirEntry>) -> io::Result<Vec<DirContents>> {
+fn get_dirs_with_music(dirs: Vec<walkdir::DirEntry>) -> Vec<DirContents> {
     let mut dir_contents = vec![];
 
     for dir in dirs {
         if dir.file_type().is_dir() {
-            let (music, others): (
-                Vec<Result<std::fs::DirEntry, _>>,
-                Vec<Result<std::fs::DirEntry, _>>,
-            ) = fs::read_dir(dir.path())?
-                .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
-                .partition(|dir_entry| {
-                    let entry = dir_entry.as_ref().unwrap();
-                    is_music_file(&entry)
-                });
-            // only return directories containing music files
-            if music.len() > 0 {
-                dir_contents.push(DirContents {
-                    dir_entry: dir,
-                    music_files: music.into_iter().map(|m| m.unwrap()).collect(),
-                    other_files: others.into_iter().map(|o| o.unwrap()).collect(),
-                });
+            let readdir = fs::read_dir(dir.path());
+            if readdir.is_ok() {
+                let (music, others): (
+                    Vec<Result<std::fs::DirEntry, _>>,
+                    Vec<Result<std::fs::DirEntry, _>>,
+                ) = readdir
+                    .unwrap()
+                    .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
+                    .partition(|dir_entry| {
+                        let entry = dir_entry.as_ref().unwrap();
+                        is_music_file(&entry)
+                    });
+                // only return directories containing music files
+                if music.len() > 0 {
+                    dir_contents.push(DirContents {
+                        dir_entry: dir,
+                        music_files: music.into_iter().map(|m| m.unwrap()).collect(),
+                        other_files: others.into_iter().map(|o| o.unwrap()).collect(),
+                    });
+                }
             }
         }
     }
 
-    Ok(dir_contents)
+    dir_contents
 }
 
 fn is_music_file(entry: &std::fs::DirEntry) -> bool {
