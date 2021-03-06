@@ -72,7 +72,12 @@ fn is_music_file(entry: &std::fs::DirEntry) -> bool {
 }
 
 fn is_music_filename(file_name: &str) -> bool {
-    file_name.to_lowercase().ends_with(".mp3") || file_name.to_lowercase().ends_with(".flac")
+    file_name.to_lowercase().ends_with(".mp3")
+        || file_name.to_lowercase().ends_with(".flac")
+        || file_name.to_lowercase().ends_with(".m4a")
+        || file_name.to_lowercase().ends_with(".m4b")
+        || file_name.to_lowercase().ends_with(".m4p")
+        || file_name.to_lowercase().ends_with(".m4v")
 }
 
 #[cfg(test)]
@@ -85,6 +90,9 @@ mod tests {
         assert_eq!(is_music_filename("/tmp/music.mp33"), false);
         assert_eq!(is_music_filename("/tmp/music.Mp3"), true);
         assert_eq!(is_music_filename("/tmp/music.FlAc"), true);
+        assert_eq!(is_music_filename("/tmp/music.m4a"), true);
+        assert_eq!(is_music_filename("/tmp/music.m4p"), true);
+        assert_eq!(is_music_filename("/tmp/music.m4v"), true);
         assert_eq!(is_music_filename("/tmp/music.mp4"), false);
     }
 }

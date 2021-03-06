@@ -7,5 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+audiotags = "0.2.7182"
 clap = "2.33.3"
 walkdir = "2"
