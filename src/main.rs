@@ -1,7 +1,7 @@
 use std::process;
 
 use mp3bandtitle::config::Config;
-use mp3bandtitle::{get_dirs_with_music, get_list_of_dirs};
+use mp3bandtitle::DirContents;
 
 fn main() {
     let config = Config::new();
@@ -11,13 +11,7 @@ fn main() {
     println!("{}", config);
     println!("==============");
 
-    let entries = get_list_of_dirs(&config);
-    println!("get_list_of_dirs() finished");
-    for entry in &entries {
-        println!("Got {}", entry.path().display());
-    }
-
-    let contents = get_dirs_with_music(entries);
+    let contents = DirContents::new(&config);
     match contents {
         Ok(contents) => {
             for entry in contents {

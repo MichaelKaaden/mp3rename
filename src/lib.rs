@@ -13,8 +13,15 @@ pub struct DirContents {
     pub other_files: Vec<std::fs::DirEntry>, // contained other files (potentially being deleted)
 }
 
+impl DirContents {
+    pub fn new(config: &Config) -> io::Result<Vec<DirContents>> {
+        let entries = get_list_of_dirs(&config);
+        get_dirs_with_music(entries)
+    }
+}
+
 /// Returns the list of directories.
-pub fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
+fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
     WalkDir::new(&config.start_dir)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir())
@@ -34,7 +41,7 @@ pub fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
 }
 
 /// Returns directories containing music files
-pub fn get_dirs_with_music(dirs: Vec<walkdir::DirEntry>) -> io::Result<Vec<DirContents>> {
+fn get_dirs_with_music(dirs: Vec<walkdir::DirEntry>) -> io::Result<Vec<DirContents>> {
     let mut dir_contents = vec![];
 
     for dir in dirs {
