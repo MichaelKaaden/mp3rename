@@ -20,7 +20,7 @@ fn main() {
     }
 
     for entry in &contents {
-        if let Some(music_file) = entry.music_files.get(0) {
+        for music_file in &entry.music_files {
             if let Some(tags) = get_tags(music_file) {
                 println!("{}", tags);
             } else {
