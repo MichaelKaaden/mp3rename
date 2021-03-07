@@ -1,6 +1,7 @@
-use std::fs;
-use std::io;
+use std::fmt::Formatter;
+use std::{fmt, fs};
 
+use audiotags;
 use walkdir::WalkDir;
 
 use crate::config::Config;
@@ -89,6 +90,53 @@ fn is_music_filename(file_name: &str) -> bool {
         || file_name.to_lowercase().ends_with(".m4b")
         || file_name.to_lowercase().ends_with(".m4p")
         || file_name.to_lowercase().ends_with(".m4v")
+}
+
+pub struct MusicTags<'a> {
+    pub album: String,
+    pub artist: String,
+    pub dir_entry: &'a std::fs::DirEntry,
+    pub disk_number: Option<u16>,
+    pub title: String,
+    pub track_number: u16,
+}
+
+impl<'a> fmt::Display for MusicTags<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Album:        {}", self.album)?;
+        if let Some(disk_number) = self.disk_number {
+            writeln!(f, "Disk Number:  {}", disk_number)?;
+        }
+        writeln!(f, "Track Number: {}", self.track_number)?;
+        writeln!(f, "Artist:       {}", self.artist)?;
+        writeln!(f, "Title:        {}", self.title)
+    }
+}
+
+pub fn get_tags(music_file: &std::fs::DirEntry) -> Option<MusicTags> {
+    let tag = audiotags::Tag::new()
+        .read_from_path(music_file.path())
+        .unwrap_or_else(|_| panic!("Could not read \"{}\"", music_file.path().to_string_lossy()));
+    let mut result: Option<MusicTags> = None;
+
+    if let Some(album) = tag.album_title() {
+        if let Some(artist) = tag.artist() {
+            if let Some(title) = tag.title() {
+                if let Some(track_number) = tag.track_number() {
+                    result = Some(MusicTags {
+                        album: album.to_string(),
+                        artist: artist.to_string(),
+                        dir_entry: music_file,
+                        disk_number: tag.disc_number(),
+                        title: title.to_string(),
+                        track_number,
+                    });
+                }
+            }
+        }
+    }
+
+    result
 }
 
 #[cfg(test)]
