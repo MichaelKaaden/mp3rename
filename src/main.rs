@@ -1,5 +1,7 @@
+use std::cmp::Ordering;
+
 use mp3bandtitle::config::Config;
-use mp3bandtitle::{get_tags, DirContents};
+use mp3bandtitle::{get_tags, DirContents, MusicTags};
 
 fn main() {
     let config = Config::new();
@@ -20,15 +22,25 @@ fn main() {
     }
 
     for entry in &contents {
-        for music_file in &entry.music_files {
-            if let Some(tags) = get_tags(music_file) {
-                println!("{}", tags);
-            } else {
-                println!(
-                    "No tags found in {}",
-                    entry.dir_entry.path().to_string_lossy()
-                );
+        println!("=================");
+        let mut tags: Vec<Option<MusicTags>> = entry
+            .music_files
+            .iter()
+            .map(|music_file| get_tags(music_file))
+            .collect();
+        tags.sort_by(|a, b| sort_options(a, b));
+
+        for tag in &tags {
+            match tag {
+                Some(t) => println!("{}", t),
+                None => println!("No tags found",),
             }
         }
     }
+}
+
+fn sort_options(a: &Option<MusicTags>, b: &Option<MusicTags>) -> Ordering {
+    let left = a.as_ref().unwrap_or_else(|| panic!("a is not defined"));
+    let right = b.as_ref().unwrap_or_else(|| panic!("b is not defined"));
+    left.track_number.cmp(&right.track_number)
 }
