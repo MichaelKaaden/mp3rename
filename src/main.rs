@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::process;
 
 use mp3bandtitle::config::Config;
 use mp3bandtitle::{get_tags, DirContents, MusicTags};
@@ -33,7 +34,13 @@ fn main() {
         for tag in &tags {
             match tag {
                 Some(t) => println!("{}", t),
-                None => println!("No tags found",),
+                None => {
+                    eprintln!(
+                        "No tags found in {}",
+                        entry.dir_entry.path().to_string_lossy()
+                    );
+                    process::exit(1);
+                }
             }
         }
     }
