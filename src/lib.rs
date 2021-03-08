@@ -8,13 +8,14 @@ use crate::config::Config;
 
 pub mod config;
 
-pub struct DirContents {
+pub struct DirContents<'a> {
     pub dir_entry: walkdir::DirEntry,
     pub music_files: Vec<std::fs::DirEntry>, // contained music files
+    pub music_tags: Vec<Option<MusicTags<'a>>>, // tags read from the music_files
     pub other_files: Vec<std::fs::DirEntry>, // contained other files (potentially being deleted)
 }
 
-impl DirContents {
+impl<'a> DirContents<'a> {
     pub fn new(config: &Config) -> Vec<DirContents> {
         let entries = get_list_of_dirs(&config);
         get_dirs_with_music(entries)
@@ -42,7 +43,7 @@ fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
 }
 
 /// Returns directories containing music files
-fn get_dirs_with_music(dirs: Vec<walkdir::DirEntry>) -> Vec<DirContents> {
+fn get_dirs_with_music<'a>(dirs: Vec<walkdir::DirEntry>) -> Vec<DirContents<'a>> {
     let mut dir_contents = vec![];
 
     for dir in dirs {
@@ -64,6 +65,7 @@ fn get_dirs_with_music(dirs: Vec<walkdir::DirEntry>) -> Vec<DirContents> {
                     dir_contents.push(DirContents {
                         dir_entry: dir,
                         music_files: music.into_iter().map(|m| m.unwrap()).collect(),
+                        music_tags: vec![],
                         other_files: others.into_iter().map(|o| o.unwrap()).collect(),
                     });
                 }
