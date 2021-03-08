@@ -12,7 +12,7 @@ fn main() {
     println!("{}", config);
     println!("==============");
 
-    let contents = DirContents::new(&config);
+    let mut contents = DirContents::new(&config);
     for entry in &contents {
         println!("dir: {}", entry.dir_entry.path().to_str().unwrap());
         println!("music: {} entries", entry.music_files.len());
@@ -22,7 +22,7 @@ fn main() {
         }
     }
 
-    for entry in &contents {
+    for entry in &mut contents {
         println!("=================");
         let mut tags: Vec<Option<MusicTags>> = entry
             .music_files
@@ -30,8 +30,9 @@ fn main() {
             .map(|music_file| get_tags(music_file))
             .collect();
         tags.sort_by(|a, b| sort_music_tag_func(a, b));
+        entry.music_tags = tags;
 
-        for tag in &tags {
+        for tag in &entry.music_tags {
             match tag {
                 Some(t) => println!("{}", t),
                 None => {
