@@ -39,6 +39,10 @@ impl DirContents {
             return true;
         }
 
+        eprintln!(
+            "Error: No tags found for {}",
+            self.dir_entry.path().to_string_lossy()
+        );
         false
     }
 }
@@ -106,6 +110,7 @@ fn get_dirs_with_music(files_and_directories: Vec<walkdir::DirEntry>) -> Vec<Dir
                     let mut music_files: Vec<MusicFile> = music
                         .into_iter()
                         .map(|dir_entry| MusicFile::new(dir_entry))
+                        .filter(|music_file| music_file.music_metadata.is_some())
                         .collect();
                     music_files.sort_by(|left, right| MusicFile::sort_func(left, right));
 

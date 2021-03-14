@@ -40,8 +40,8 @@ impl MusicMetadata {
     }
 
     pub fn sort_func(a: &Option<MusicMetadata>, b: &Option<MusicMetadata>) -> Ordering {
-        let left = a.as_ref().unwrap_or_else(|| panic!("a is not defined"));
-        let right = b.as_ref().unwrap_or_else(|| panic!("b is not defined"));
+        let left = a.as_ref().unwrap_or_else(|| panic!("No tags defined"));
+        let right = b.as_ref().unwrap_or_else(|| panic!("No tags defined"));
 
         if left.disk_number.is_some() && right.disk_number.is_none() {
             return Ordering::Greater;
