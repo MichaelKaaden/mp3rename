@@ -33,8 +33,10 @@ impl fmt::Display for MusicFile {
             self.dir_entry.path().to_string_lossy()
         )?;
         match &self.music_metadata {
-            None => writeln!(f, "No tags found."),
-            Some(tags) => writeln!(f, "{}", tags),
-        }
+            None => writeln!(f, "No tags found.")?,
+            Some(tags) => writeln!(f, "{}", tags)?,
+        };
+
+        fmt::Result::Ok(())
     }
 }

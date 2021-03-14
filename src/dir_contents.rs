@@ -39,10 +39,10 @@ impl fmt::Display for DirContents {
             )?;
         }
         for m in &self.music_files {
-            writeln!(f, "{}", m)?
+            writeln!(f, "{}", m)?;
         }
 
-        writeln!(f, "")
+        fmt::Result::Ok(())
     }
 }
 
