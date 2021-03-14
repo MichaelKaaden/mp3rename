@@ -1,4 +1,6 @@
 use std::cmp::Ordering;
+use std::fmt;
+use std::fmt::Formatter;
 use std::fs;
 
 use crate::music_metadata::MusicMetadata;
@@ -20,5 +22,19 @@ impl MusicFile {
 
     pub fn sort_func(left: &MusicFile, right: &MusicFile) -> Ordering {
         MusicMetadata::sort_func(&left.music_metadata, &right.music_metadata)
+    }
+}
+
+impl fmt::Display for MusicFile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "File Name:    {}",
+            self.dir_entry.path().to_string_lossy()
+        )?;
+        match &self.music_metadata {
+            None => writeln!(f, "No tags found."),
+            Some(tags) => writeln!(f, "{}", tags),
+        }
     }
 }

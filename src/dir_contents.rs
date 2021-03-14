@@ -1,3 +1,5 @@
+use std::fmt;
+use std::fmt::Formatter;
 use std::fs;
 
 use walkdir::WalkDir;
@@ -17,6 +19,30 @@ impl DirContents {
         let all_files_and_directories = get_list_of_dirs(&config);
         let music_directories = get_dirs_with_music(all_files_and_directories);
         music_directories
+    }
+}
+
+impl fmt::Display for DirContents {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "Directory Name: {}",
+            self.dir_entry.path().to_string_lossy()
+        )?;
+        writeln!(f, "music files:    {} entries", self.music_files.len())?;
+        writeln!(f, "ordinary files: {} entries", self.ordinary_files.len())?;
+        for o in &self.ordinary_files {
+            writeln!(
+                f,
+                "ordinary file:  {}",
+                o.dir_entry.path().to_string_lossy()
+            )?;
+        }
+        for m in &self.music_files {
+            writeln!(f, "{}", m)?
+        }
+
+        writeln!(f, "")
     }
 }
 
