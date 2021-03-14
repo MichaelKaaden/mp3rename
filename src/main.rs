@@ -1,5 +1,3 @@
-use std::process;
-
 use mp3bandtitle::config::Config;
 use mp3bandtitle::dir_contents::DirContents;
 
