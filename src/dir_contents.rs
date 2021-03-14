@@ -20,6 +20,27 @@ impl DirContents {
         let music_directories = get_dirs_with_music(all_files_and_directories);
         music_directories
     }
+
+    pub fn same_artists(&self) -> bool {
+        let artists: Vec<&String> = self
+            .music_files
+            .iter()
+            .filter_map(|m| m.music_metadata.as_ref())
+            .map(|m| &m.artist)
+            .collect();
+
+        if artists.len() > 0 {
+            let first_artist = artists[0];
+            for artist in artists {
+                if artist != first_artist {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        false
+    }
 }
 
 impl fmt::Display for DirContents {
