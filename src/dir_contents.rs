@@ -56,17 +56,19 @@ fn get_dirs_with_music(files_and_directories: Vec<walkdir::DirEntry>) -> Vec<Dir
 
                 // only return directories containing music files
                 if music.len() > 0 {
-                    let music_files: Vec<MusicFile> = music
+                    let mut music_files: Vec<MusicFile> = music
                         .into_iter()
                         .map(|dir_entry| MusicFile::new(dir_entry))
                         .collect();
-                    let other_files: Vec<OrdinaryFile> =
+                    music_files.sort_by(|left, right| MusicFile::sort_func(left, right));
+
+                    let ordinary_files: Vec<OrdinaryFile> =
                         others.into_iter().map(|o| OrdinaryFile::new(o)).collect();
 
                     dir_contents.push(DirContents {
                         dir_entry: dir,
                         music_files,
-                        ordinary_files: other_files,
+                        ordinary_files,
                     });
                 }
             }

@@ -38,6 +38,28 @@ impl MusicMetadata {
 
         None
     }
+
+    pub fn sort_func(a: &Option<MusicMetadata>, b: &Option<MusicMetadata>) -> Ordering {
+        let left = a.as_ref().unwrap_or_else(|| panic!("a is not defined"));
+        let right = b.as_ref().unwrap_or_else(|| panic!("b is not defined"));
+
+        if left.disk_number.is_some() && right.disk_number.is_none() {
+            return Ordering::Greater;
+        } else if left.disk_number.is_none() && right.disk_number.is_some() {
+            return Ordering::Less;
+        }
+
+        if let Some(left_disk_number) = left.disk_number {
+            if let Some(right_disk_number) = right.disk_number {
+                let disk_number_comparison = left_disk_number.cmp(&right_disk_number);
+                if disk_number_comparison != Ordering::Equal {
+                    return disk_number_comparison;
+                }
+            }
+        }
+
+        left.track_number.cmp(&right.track_number)
+    }
 }
 
 impl fmt::Display for MusicMetadata {
@@ -50,27 +72,4 @@ impl fmt::Display for MusicMetadata {
         writeln!(f, "Artist:       {}", self.artist)?;
         writeln!(f, "Title:        {}", self.title)
     }
-}
-
-#[allow(dead_code)]
-fn sort_music_tag_func(a: &Option<MusicMetadata>, b: &Option<MusicMetadata>) -> Ordering {
-    let left = a.as_ref().unwrap_or_else(|| panic!("a is not defined"));
-    let right = b.as_ref().unwrap_or_else(|| panic!("b is not defined"));
-
-    if left.disk_number.is_some() && right.disk_number.is_none() {
-        return Ordering::Greater;
-    } else if left.disk_number.is_none() && right.disk_number.is_some() {
-        return Ordering::Less;
-    }
-
-    if let Some(left_disk_number) = left.disk_number {
-        if let Some(right_disk_number) = right.disk_number {
-            let disk_number_comparison = left_disk_number.cmp(&right_disk_number);
-            if disk_number_comparison != Ordering::Equal {
-                return disk_number_comparison;
-            }
-        }
-    }
-
-    left.track_number.cmp(&right.track_number)
 }
