@@ -1,6 +1,5 @@
-use mp3bandtitle::check_artists;
 use mp3bandtitle::config::Config;
-use mp3bandtitle::dir_contents::DirContents;
+use mp3bandtitle::rename;
 
 fn main() {
     let config = Config::new();
@@ -10,6 +9,5 @@ fn main() {
     println!("{}", config);
     println!("==============");
 
-    let contents = DirContents::new(&config);
-    check_artists(contents);
+    rename(&config);
 }
