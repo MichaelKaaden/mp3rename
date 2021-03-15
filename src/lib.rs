@@ -21,7 +21,7 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     println!("Same Artist: {}", same_artist);
 
     for music_file in &dir.music_files {
-        match music_file.canonical_name(config, same_artist) {
+        match music_file.canonical_name(config, same_artist, dir.music_files.len()) {
             Some(m) => println!("Canonical name: {}", m),
             None => eprintln!("Couldn't retrieve canonical name"),
         }

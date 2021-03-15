@@ -25,12 +25,17 @@ impl MusicFile {
         self: &MusicFile,
         config: &Config,
         is_same_artist_for_whole_album: bool,
+        number_of_music_files_in_this_directory: usize,
     ) -> Option<String> {
         if let Some(metadata) = &self.music_metadata {
-            let disc_num = match metadata.disk_number {
+            let disk_number = match metadata.disk_number {
                 None => String::new(),
                 Some(num) => format!("{}", num),
             };
+
+            // number of digits to zero-pad the track number
+            let num_digits = number_of_music_files_in_this_directory.to_string().len();
+            let track_number = format!("{:0width$}", metadata.track_number, width = num_digits);
 
             let artist = if config.remove_artist && is_same_artist_for_whole_album {
                 String::new()
@@ -45,7 +50,7 @@ impl MusicFile {
 
             let result = format!(
                 "{}{}{} - {}{}",
-                disc_num, metadata.track_number, artist, metadata.title, extension
+                disk_number, track_number, artist, metadata.title, extension
             );
 
             return Some(result);
