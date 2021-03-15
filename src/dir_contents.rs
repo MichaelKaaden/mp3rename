@@ -39,10 +39,7 @@ impl DirContents {
             return true;
         }
 
-        eprintln!(
-            "Error: No tags found for {}",
-            self.dir_entry.path().to_string_lossy()
-        );
+        // an error for missing tags has already been reported in MusicMetadata::new()
         false
     }
 }

@@ -36,6 +36,10 @@ impl MusicMetadata {
             }
         }
 
+        eprintln!(
+            "Error: No tags found in {}",
+            music_file.path().to_string_lossy()
+        );
         None
     }
 
