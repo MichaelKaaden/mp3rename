@@ -7,7 +7,6 @@ fn main() {
     println!("==============");
     println!("Configuration:");
     println!("{}", config);
-    println!("==============");
 
     rename_music_files(&config);
 }

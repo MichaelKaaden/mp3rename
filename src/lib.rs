@@ -10,12 +10,16 @@ mod ordinary_file;
 pub fn rename_music_files(config: &Config) {
     let contents = DirContents::new(&config);
     for dir in contents {
+        println!("==============");
         handle_directory(&dir, config);
     }
 }
 
 fn handle_directory(dir: &DirContents, config: &Config) {
-    println!("Directory: {}", dir.dir_entry.path().to_string_lossy());
+    println!(
+        "Handling directory \"{}\"",
+        dir.dir_entry.path().to_string_lossy()
+    );
 
     let same_artist = dir.same_artists();
     println!("Same Artist: {}", same_artist);
