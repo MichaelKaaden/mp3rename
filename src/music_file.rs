@@ -40,7 +40,7 @@ impl MusicFile {
             let artist = if config.remove_artist && is_same_artist_for_whole_album {
                 String::new()
             } else {
-                format!(" {}", &metadata.artist)
+                format!(" {} -", &metadata.artist)
             };
 
             let extension = match self.dir_entry.path().extension() {
@@ -49,7 +49,7 @@ impl MusicFile {
             };
 
             let result = format!(
-                "{}{}{} - {}{}",
+                "{}{}{} {}{}",
                 disk_number, track_number, artist, metadata.title, extension
             );
 
