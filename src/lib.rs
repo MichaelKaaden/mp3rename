@@ -22,7 +22,13 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     );
 
     let same_artist = dir.same_artists();
-    println!("Same Artist: {}", same_artist);
+    println!("Same artist:      {}", same_artist);
+    let same_album_title = dir.same_album_title();
+    if let Some(album_title) = same_album_title {
+        println!("Same album title: {}", album_title);
+    } else {
+        println!("Multiple album names.")
+    }
 
     for music_file in &dir.music_files {
         match music_file.canonical_name(config, same_artist, dir.music_files.len()) {

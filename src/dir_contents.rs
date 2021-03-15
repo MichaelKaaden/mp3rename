@@ -21,6 +21,29 @@ impl DirContents {
         music_directories
     }
 
+    // Which album name does the whole directory have for all music files?
+    pub fn same_album_title(&self) -> Option<&String> {
+        let albums: Vec<&String> = self
+            .music_files
+            .iter()
+            .filter_map(|m| m.music_metadata.as_ref())
+            .map(|m| &m.album)
+            .collect();
+
+        if albums.len() > 0 {
+            let first_album = albums[0];
+            for album in albums {
+                if album != first_album {
+                    return None;
+                }
+            }
+            return Some(first_album);
+        }
+
+        None
+    }
+
+    /// Has the whole directory the same artist for every music file?
     pub fn same_artists(&self) -> bool {
         let artists: Vec<&String> = self
             .music_files
