@@ -3,6 +3,7 @@ use std::fs;
 
 use crate::config::Config;
 use crate::dir_contents::DirContents;
+use crate::music_file::MusicFile;
 
 pub mod config;
 pub mod dir_contents;
@@ -26,6 +27,17 @@ fn handle_directory(dir: &DirContents, config: &Config) {
 
     let same_artist = dir.same_artists();
     println!("Same artist:      {}", same_artist);
+
+    for music_file in &dir.music_files {
+        match music_file.canonical_name(config, same_artist, dir.music_files.len()) {
+            Some(canonical_name) => {
+                println!("Canonical name: {}", canonical_name);
+                rename_music_file(music_file, config, &canonical_name)
+            }
+            None => eprintln!("Couldn't retrieve canonical name"),
+        }
+    }
+
     let same_album_title = dir.same_album_title();
     if let Some(album_title) = same_album_title {
         println!("Same album title: {}", album_title);
@@ -36,23 +48,49 @@ fn handle_directory(dir: &DirContents, config: &Config) {
         println!("Multiple album names.")
     }
 
-    for music_file in &dir.music_files {
-        match music_file.canonical_name(config, same_artist, dir.music_files.len()) {
-            Some(m) => println!("Canonical name: {}", m),
-            None => eprintln!("Couldn't retrieve canonical name"),
-        }
-    }
     //println!("{}", dir);
 }
 
-/// Rename the directory according to the album title
+// Rename a music file according to its canonical name
+fn rename_music_file(music_file: &MusicFile, config: &Config, canonical_name: &str) {
+    let old_path = music_file.dir_entry.path();
+    let old_file_name = old_path
+        .file_name()
+        .unwrap_or_else(|| {
+            panic!(
+                "Cannot retrieve file name from {}",
+                old_path.to_string_lossy()
+            )
+        })
+        .to_string_lossy();
+    let new_path = old_path.with_file_name(OsString::from(canonical_name));
+    let new_file_name = new_path
+        .file_name()
+        .unwrap_or_else(|| {
+            panic!(
+                "Cannot retrieve file name from {}",
+                new_path.to_string_lossy()
+            )
+        })
+        .to_string_lossy();
+
+    println!("Renaming \"{}\" to \"{}\"", old_file_name, new_file_name);
+
+    if !config.dry_run {
+        if let Err(e) = fs::rename(&old_path, new_path) {
+            eprintln!("Error renaming \"{}\": {}", old_file_name, e);
+        }
+    }
+}
+
+/// Rename a directory according to the album title
 fn rename_directory(dir: &DirContents, config: &Config, album_title: &String) {
     let old_path = dir.dir_entry.path();
     let old_dir_name = old_path
         .file_name()
         .unwrap_or_else(|| {
             panic!(
-                "Cannot retrieve file name from {}",
+                "Cannot retrieve directory name from {}",
                 old_path.to_string_lossy()
             )
         })
@@ -63,7 +101,7 @@ fn rename_directory(dir: &DirContents, config: &Config, album_title: &String) {
         .file_name()
         .unwrap_or_else(|| {
             panic!(
-                "Cannot retrieve file name from {}",
+                "Cannot retrieve directory name from {}",
                 new_path.to_string_lossy()
             )
         })
