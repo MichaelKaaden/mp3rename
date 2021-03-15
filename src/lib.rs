@@ -51,7 +51,10 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     //println!("{}", dir);
 }
 
-// Rename a music file according to its canonical name
+/// Rename a music file according to its canonical name
+// need to use a different implementation than in rename_directory because one
+// uses walkdir::DirEntry and the other uses fs::DirEntry which both need to be
+// in the parameter list.
 fn rename_music_file(music_file: &MusicFile, config: &Config, canonical_name: &str) {
     let old_path = music_file.dir_entry.path();
     let old_file_name = old_path
@@ -84,6 +87,9 @@ fn rename_music_file(music_file: &MusicFile, config: &Config, canonical_name: &s
 }
 
 /// Rename a directory according to the album title
+// need to use a different implementation than in rename_directory because one
+// uses walkdir::DirEntry and the other uses fs::DirEntry which both need to be
+// in the parameter list.
 fn rename_directory(dir: &DirContents, config: &Config, album_title: &String) {
     let old_path = dir.dir_entry.path();
     let old_dir_name = old_path
