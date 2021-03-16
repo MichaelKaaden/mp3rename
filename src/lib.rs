@@ -14,25 +14,29 @@ mod ordinary_file;
 pub fn rename_music_files(config: &Config) {
     let contents = DirContents::new(&config);
     for dir in contents {
-        println!("==============");
         handle_directory(&dir, config);
     }
 }
 
 fn handle_directory(dir: &DirContents, config: &Config) {
+    println!("==============");
     println!(
-        "Handling directory \"{}\"",
+        "Entering directory \"{}\"",
         dir.dir_entry.path().to_string_lossy()
     );
 
     let same_artist = dir.same_artists();
-    println!("Same artist: {}", same_artist);
+    if config.verbose {
+        println!("Same artist: {}", same_artist);
+    }
 
     // rename music files
     for music_file in &dir.music_files {
         match music_file.canonical_name(config, same_artist, dir.music_files.len()) {
             Some(canonical_name) => {
-                println!("Canonical name: {}", canonical_name);
+                if config.verbose {
+                    println!("Canonical name: {}", canonical_name);
+                }
                 rename_directory(music_file.dir_entry.path(), config, &canonical_name)
             }
             None => eprintln!("Couldn't retrieve canonical name"),
@@ -58,12 +62,16 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     // rename the directory
     let same_album_title = dir.same_album_title();
     if let Some(album_title) = same_album_title {
-        println!("Same album title: {}", album_title);
+        if config.verbose {
+            println!("Same album title: {}", album_title);
+        }
         if config.rename_directory {
             rename_directory(dir.dir_entry.path().to_path_buf(), config, album_title)
         }
     } else {
-        println!("Multiple album names.")
+        if config.verbose {
+            println!("Multiple album names.")
+        }
     }
 }
 

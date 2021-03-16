@@ -15,6 +15,7 @@ pub struct Config {
     pub shorten_names: bool,
     pub start_dir: PathBuf,
     pub use_fatfs_names: bool,
+    pub verbose: bool,
 }
 
 impl Config {
@@ -27,6 +28,7 @@ impl Config {
         const LENGTH_VALUE: &str = "LENGTH";
         const REMOVE: &str = "remove";
         const START_DIR: &str = "START_DIR";
+        const VERBOSE: &str = "verbose";
 
         let matches = App::new("mp3bandtitle")
             // use crate_version! to pull the version number
@@ -82,6 +84,13 @@ tags in the music files.",
                     .index(1)
                     .required(false),
             )
+            .arg(
+                Arg::with_name(VERBOSE)
+                    .short("v")
+                    .long(VERBOSE)
+                    .help("Verbose mode"),
+            )
+
             .get_matches();
 
         let start_dir = String::from(
@@ -118,6 +127,7 @@ tags in the music files.",
             shorten_names: matches.is_present(LENGTH),
             start_dir,
             use_fatfs_names: matches.is_present(FATFS),
+            verbose: matches.is_present(VERBOSE),
         }
     }
 }
@@ -135,7 +145,8 @@ impl fmt::Display for Config {
         )?;
         writeln!(f, "Rename directory:         {:?}", self.rename_directory)?;
         writeln!(f, "Shorten names:            {:?}", self.shorten_names)?;
-        writeln!(f, "Use FAT-compatible names: {:?}", self.use_fatfs_names)
+        writeln!(f, "Use FAT-compatible names: {:?}", self.use_fatfs_names)?;
+        writeln!(f, "Verbose mode            : {:?}", self.verbose)
     }
 }
 
