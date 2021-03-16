@@ -28,6 +28,7 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     let same_artist = dir.same_artists();
     println!("Same artist: {}", same_artist);
 
+    // rename music files
     for music_file in &dir.music_files {
         match music_file.canonical_name(config, same_artist, dir.music_files.len()) {
             Some(canonical_name) => {
@@ -38,16 +39,7 @@ fn handle_directory(dir: &DirContents, config: &Config) {
         }
     }
 
-    let same_album_title = dir.same_album_title();
-    if let Some(album_title) = same_album_title {
-        println!("Same album title: {}", album_title);
-        if config.rename_directory {
-            rename_directory(dir.dir_entry.path().to_path_buf(), config, album_title)
-        }
-    } else {
-        println!("Multiple album names.")
-    }
-
+    // remove ordinary files
     if dir.ordinary_files.len() > 0 && config.remove_ordinary_files {
         for file in &dir.ordinary_files {
             println!("Removing {}", file.dir_entry.path().to_string_lossy());
@@ -62,7 +54,17 @@ fn handle_directory(dir: &DirContents, config: &Config) {
             }
         }
     }
-    //println!("{}", dir);
+
+    // rename the directory
+    let same_album_title = dir.same_album_title();
+    if let Some(album_title) = same_album_title {
+        println!("Same album title: {}", album_title);
+        if config.rename_directory {
+            rename_directory(dir.dir_entry.path().to_path_buf(), config, album_title)
+        }
+    } else {
+        println!("Multiple album names.")
+    }
 }
 
 /// Rename a file or directory name in a path
