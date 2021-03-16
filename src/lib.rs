@@ -48,6 +48,20 @@ fn handle_directory(dir: &DirContents, config: &Config) {
         println!("Multiple album names.")
     }
 
+    if dir.ordinary_files.len() > 0 && config.remove_ordinary_files {
+        for file in &dir.ordinary_files {
+            println!("Removing {}", file.dir_entry.path().to_string_lossy());
+            if !config.dry_run {
+                if let Err(err) = fs::remove_file(file.dir_entry.path()) {
+                    eprintln!(
+                        "Couldn't remove {}: {}",
+                        file.dir_entry.path().to_string_lossy(),
+                        err
+                    );
+                };
+            }
+        }
+    }
     //println!("{}", dir);
 }
 
