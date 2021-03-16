@@ -140,13 +140,13 @@ impl fmt::Display for Config {
         writeln!(f, "Remove artist:            {:?}", self.remove_artist)?;
         writeln!(
             f,
-            "Remove ordinary files:   {:?}",
+            "Remove ordinary files:    {:?}",
             self.remove_ordinary_files
         )?;
         writeln!(f, "Rename directory:         {:?}", self.rename_directory)?;
         writeln!(f, "Shorten names:            {:?}", self.shorten_names)?;
         writeln!(f, "Use FAT-compatible names: {:?}", self.use_fatfs_names)?;
-        writeln!(f, "Verbose mode            : {:?}", self.verbose)
+        writeln!(f, "Verbose mode:             {:?}", self.verbose)
     }
 }
 
