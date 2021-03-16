@@ -37,7 +37,7 @@ fn handle_directory(dir: &DirContents, config: &Config) {
                 if config.verbose {
                     println!("Canonical name: {}", canonical_name);
                 }
-                rename_directory(music_file.dir_entry.path(), config, &canonical_name)
+                rename_file_or_directory(music_file.dir_entry.path(), config, &canonical_name)
             }
             None => eprintln!("Couldn't retrieve canonical name"),
         }
@@ -66,7 +66,7 @@ fn handle_directory(dir: &DirContents, config: &Config) {
             println!("Same album title: {}", album_title);
         }
         if config.rename_directory {
-            rename_directory(dir.dir_entry.path().to_path_buf(), config, album_title)
+            rename_file_or_directory(dir.dir_entry.path().to_path_buf(), config, album_title)
         }
     } else {
         if config.verbose {
@@ -76,7 +76,7 @@ fn handle_directory(dir: &DirContents, config: &Config) {
 }
 
 /// Rename a file or directory name in a path
-fn rename_directory(old_path: PathBuf, config: &Config, to_name: &str) {
+fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
     let old_name = old_path
         .file_name()
         .unwrap_or_else(|| {
@@ -96,6 +96,10 @@ fn rename_directory(old_path: PathBuf, config: &Config, to_name: &str) {
             )
         })
         .to_string_lossy();
+
+    if old_name == new_name {
+        return;
+    }
 
     println!("Renaming \"{}\" to \"{}\"", old_name, new_name);
 
