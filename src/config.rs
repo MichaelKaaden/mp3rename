@@ -10,9 +10,8 @@ pub struct Config {
     pub dry_run: bool,
     pub name_length: u32,
     pub remove_artist: bool,
-    pub remove_non_music_files: bool,
+    pub remove_ordinary_files: bool,
     pub rename_directory: bool,
-    pub replace_underscores: bool,
     pub shorten_names: bool,
     pub start_dir: PathBuf,
     pub use_fatfs_names: bool,
@@ -21,7 +20,6 @@ pub struct Config {
 impl Config {
     pub fn new() -> Config {
         const ARTIST: &str = "artist";
-        const BLANKS: &str = "blanks";
         const DIRECTORY: &str = "directory";
         const DRY_RUN: &str = "dry-run";
         const FATFS: &str = "fatfs";
@@ -44,12 +42,6 @@ tags in the music files.",
                     .short("a")
                     .long(ARTIST)
                     .help("Remove the artist from the filename if it is the same for all files in the current directory"),
-            )
-            .arg(
-                Arg::with_name(BLANKS)
-                    .short("b")
-                    .long(BLANKS)
-                    .help("Replace underscores with blanks in directory names"),
             )
             .arg(
                 Arg::with_name(DIRECTORY)
@@ -121,9 +113,8 @@ tags in the music files.",
             dry_run: matches.is_present(DRY_RUN),
             name_length,
             remove_artist: matches.is_present(ARTIST),
-            remove_non_music_files: matches.is_present(REMOVE),
+            remove_ordinary_files: matches.is_present(REMOVE),
             rename_directory: matches.is_present(DIRECTORY),
-            replace_underscores: matches.is_present(BLANKS),
             shorten_names: matches.is_present(LENGTH),
             start_dir,
             use_fatfs_names: matches.is_present(FATFS),
@@ -139,15 +130,10 @@ impl fmt::Display for Config {
         writeln!(f, "Remove artist:            {:?}", self.remove_artist)?;
         writeln!(
             f,
-            "Remove non-music files:   {:?}",
-            self.remove_non_music_files
+            "Remove ordinary files:   {:?}",
+            self.remove_ordinary_files
         )?;
         writeln!(f, "Rename directory:         {:?}", self.rename_directory)?;
-        writeln!(
-            f,
-            "Replace blanks:           {:?}",
-            self.replace_underscores
-        )?;
         writeln!(f, "Shorten names:            {:?}", self.shorten_names)?;
         writeln!(f, "Use FAT-compatible names: {:?}", self.use_fatfs_names)
     }
