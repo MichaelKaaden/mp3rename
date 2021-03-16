@@ -43,7 +43,7 @@ tags in the music files.",
                 Arg::with_name(ARTIST)
                     .short("a")
                     .long(ARTIST)
-                    .help("Remove the artist from the filename if it is the same for all files in the current directory"),
+                    .help("Remove the artist from the filename if it is the same for all files in a directory"),
             )
             .arg(
                 Arg::with_name(DIRECTORY)
