@@ -1,6 +1,6 @@
 use std::ffi::OsString;
-use std::fs;
 use std::path::PathBuf;
+use std::{cmp, fs};
 
 use regex::Regex;
 
@@ -89,8 +89,8 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
         })
         .to_string_lossy();
 
-    let new_path = old_path.with_file_name(OsString::from(to_name));
-    let new_name = sanitize_file_or_directory_name(
+    let mut new_path = old_path.with_file_name(OsString::from(to_name));
+    let mut new_name = sanitize_file_or_directory_name(
         &new_path
             .file_name()
             .unwrap_or_else(|| {
@@ -103,9 +103,15 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
         config,
     );
 
+    if config.shorten_names {
+        new_name = shorten_names(&new_path, &new_name, config);
+    }
+
     if old_name == new_name {
         return;
     }
+
+    new_path = new_path.with_file_name(&new_name);
 
     println!("Renaming \"{}\" to \"{}\"", old_name, new_name);
 
@@ -143,6 +149,29 @@ fn sanitize_file_or_directory_name(filename: &str, config: &Config) -> String {
     name = re.replace_all(&name, " ").to_string();
 
     name
+}
+
+fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String {
+    let (extension, extension_len) = match new_path.extension() {
+        None => ("".to_string(), 0),
+        Some(ext) => {
+            let plain_ext = ext.to_string_lossy().to_string(); // without leading dot
+            (format!(".{}", plain_ext), (plain_ext.len() + 1) as i32)
+        }
+    };
+
+    let short_name_stem = new_name.replace(&extension, "");
+
+    let len = cmp::min(
+        cmp::min(
+            cmp::max((config.name_length as i32) - extension_len, 0) as u32, // get a positive number
+            config.name_length,
+        ) as usize,
+        short_name_stem.len(),
+    );
+
+    // trim to not have a blank before the extension
+    format!("{}{}", &short_name_stem[..len].trim(), extension)
 }
 
 #[cfg(test)]
@@ -240,6 +269,68 @@ mod tests {
                 }
             ),
             "foo - bar"
+        );
+    }
+
+    #[test]
+    fn name_shortening() {
+        let config = Config {
+            dry_run: false,
+            name_length: 8,
+            remove_artist: false,
+            remove_ordinary_files: false,
+            rename_directory: false,
+            shorten_names: false,
+            start_dir: Default::default(),
+            use_fatfs_names: false,
+            verbose: false,
+        };
+
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar.txt"), "foo.txt", &config),
+            "foo.txt"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar.flac"), "123456789.flac", &config),
+            "123.flac"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar.txt"), "foo bar.txt", &config),
+            "foo.txt"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.txt"),
+                "foo bar.txt",
+                &Config {
+                    dry_run: false,
+                    name_length: 9,
+                    remove_artist: false,
+                    remove_ordinary_files: false,
+                    rename_directory: false,
+                    shorten_names: false,
+                    start_dir: Default::default(),
+                    use_fatfs_names: false,
+                    verbose: false
+                }
+            ),
+            "foo b.txt"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar.txt"), "foo bar.blah.txt", &config),
+            "foo.txt"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar"), "foo bar", &config),
+            "foo bar"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar"), "foo bar   ", &config),
+            "foo bar"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar"), "123456789", &config),
+            "12345678"
         );
     }
 }
