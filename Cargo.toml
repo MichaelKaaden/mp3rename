@@ -9,4 +9,5 @@ edition = "2018"
 [dependencies]
 audiotags = "0.2.7182"
 clap = "2.33.3"
+regex = "1"
 walkdir = "2"
