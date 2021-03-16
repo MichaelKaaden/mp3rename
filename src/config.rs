@@ -24,7 +24,7 @@ impl Config {
         const DIRECTORY: &str = "directory";
         const DRY_RUN: &str = "dry-run";
         const FATFS: &str = "fatfs";
-        const LENGTH: &str = "length";
+        const LENGTH: &str = "limit-length";
         const LENGTH_VALUE: &str = "LENGTH";
         const REMOVE: &str = "remove";
         const START_DIR: &str = "START_DIR";
