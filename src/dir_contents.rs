@@ -94,6 +94,7 @@ impl fmt::Display for DirContents {
 /// Returns the list of directories.
 fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
     WalkDir::new(&config.start_dir)
+        .contents_first(true)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir())
         // filter out errors (cannot print warnings!)
