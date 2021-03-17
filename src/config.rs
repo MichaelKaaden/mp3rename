@@ -35,25 +35,28 @@ impl Config {
             .about(
                 "Traverses a directory tree and renames all music files and,
 optionally, the directories containing them according to the
-tags in the music files.",
+tags in the music files.
+The resulting file name will have the form
+<Disc Number><Track Number> <Artist> - <Track Title>.<extension>
+(with extension in <mp3|flac|m4a|m4b|m4p|m4v>).",
             )
             .arg(
                 Arg::with_name(ARTIST)
                     .short("a")
                     .long(ARTIST)
-                    .help("Remove the artist from the filename if it is the same for all files in a directory"),
+                    .help("Removes the artist from the filename if it is the same for all files in a directory"),
             )
             .arg(
                 Arg::with_name(DIRECTORY)
                     .short("d")
                     .long(DIRECTORY)
-                    .help("Rename directory according to the album tag"),
+                    .help("Renames directories according to the album tag"),
             )
             .arg(
                 Arg::with_name(DRY_RUN)
                     .short("n")
                     .long(DRY_RUN)
-                    .help("Dry run mode"),
+                    .help("Uses dry-run mode"),
             )
             .arg(
                 Arg::with_name(LENGTH)
@@ -61,13 +64,13 @@ tags in the music files.",
                     .long(LENGTH)
                     .takes_value(true)
                     .value_name(LENGTH_VALUE)
-                    .help("Limit file and directory names to <LENGTH> characters"),
+                    .help("Limits the file and directory names to <LENGTH> characters"),
             )
             .arg(
                 Arg::with_name(REMOVE)
                     .short("r")
                     .long(REMOVE)
-                    .help("Remove non-music files"),
+                    .help("Removes non-music files"),
             )
             .arg(
                 // this is a positional argument
@@ -80,7 +83,7 @@ tags in the music files.",
                 Arg::with_name(VERBOSE)
                     .short("v")
                     .long(VERBOSE)
-                    .help("Verbose mode"),
+                    .help("Be verbose"),
             )
 
             .get_matches();
