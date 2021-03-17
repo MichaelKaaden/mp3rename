@@ -7,6 +7,7 @@ use walkdir::WalkDir;
 use crate::config::Config;
 use crate::music_file::MusicFile;
 use crate::ordinary_file::OrdinaryFile;
+use crate::util;
 
 pub struct DirContents {
     pub dir_entry: walkdir::DirEntry,
@@ -124,7 +125,7 @@ fn get_dirs_with_music(files_and_directories: Vec<walkdir::DirEntry>) -> Vec<Dir
                     .unwrap()
                     .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
                     .map(|dir_entry| dir_entry.unwrap())
-                    .partition(|dir_entry| is_music_file(dir_entry));
+                    .partition(|dir_entry| util::is_music_file(dir_entry));
 
                 // only return directories containing music files
                 if music.len() > 0 {
@@ -149,39 +150,4 @@ fn get_dirs_with_music(files_and_directories: Vec<walkdir::DirEntry>) -> Vec<Dir
     }
 
     dir_contents
-}
-
-fn is_music_file(entry: &fs::DirEntry) -> bool {
-    let path = entry.path();
-    let file_name = path.to_str();
-    match file_name {
-        None => false,
-        Some(file_name) => is_music_filename(file_name),
-    }
-}
-
-fn is_music_filename(file_name: &str) -> bool {
-    file_name.to_lowercase().ends_with(".mp3")
-        || file_name.to_lowercase().ends_with(".flac")
-        || file_name.to_lowercase().ends_with(".m4a")
-        || file_name.to_lowercase().ends_with(".m4b")
-        || file_name.to_lowercase().ends_with(".m4p")
-        || file_name.to_lowercase().ends_with(".m4v")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn matches_music() {
-        assert_eq!(is_music_filename("/tmp/music.mp3"), true);
-        assert_eq!(is_music_filename("/tmp/music.mp33"), false);
-        assert_eq!(is_music_filename("/tmp/music.Mp3"), true);
-        assert_eq!(is_music_filename("/tmp/music.FlAc"), true);
-        assert_eq!(is_music_filename("/tmp/music.m4a"), true);
-        assert_eq!(is_music_filename("/tmp/music.m4p"), true);
-        assert_eq!(is_music_filename("/tmp/music.m4v"), true);
-        assert_eq!(is_music_filename("/tmp/music.mp4"), false);
-    }
 }
