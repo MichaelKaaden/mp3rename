@@ -148,15 +148,8 @@ fn sanitize_file_or_directory_name(filename: &str, config: &Config) -> String {
 }
 
 fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String {
-    let (extension, extension_len) = match new_path.extension() {
-        None => ("".to_string(), 0),
-        Some(ext) => {
-            let plain_ext = ext.to_string_lossy().to_string(); // without leading dot
-            (format!(".{}", plain_ext), (plain_ext.len() + 1) as i32)
-        }
-    };
-
-    let short_name_stem = new_name.replace(&extension, "");
+    let (extension, extension_len): (String, i32) = get_extension(new_path);
+    let short_name_stem = get_name_stem(new_name, &extension);
 
     let len = cmp::min(
         cmp::min(
@@ -168,6 +161,23 @@ fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String 
 
     // trim to not have a blank before the extension
     format!("{}{}", &short_name_stem[..len].trim(), extension)
+}
+
+/// Returns the path's extension (or the empty string)
+fn get_extension(path: &PathBuf) -> (String, i32) {
+    let (extension, extension_len) = match path.extension() {
+        None => ("".to_string(), 0),
+        Some(ext) => {
+            let plain_ext = ext.to_string_lossy().to_string(); // without leading dot
+            (format!(".{}", plain_ext), (plain_ext.len() + 1) as i32)
+        }
+    };
+    (extension, extension_len)
+}
+
+/// Returns the file name's stem, i. e. the name without the extension given as second argument
+fn get_name_stem(name: &str, extension: &str) -> String {
+    name.replace(&extension, "")
 }
 
 #[cfg(test)]
@@ -258,11 +268,18 @@ mod tests {
         );
         assert_eq!(
             sanitize_file_or_directory_name(
+                "01 Science Fiction & Double Feature.mp3",
+                &default_config,
+            ),
+            "01 Science Fiction & Double Feature.mp3"
+        );
+        assert_eq!(
+            sanitize_file_or_directory_name(
                 "foo: bar",
                 &Config {
                     use_fatfs_names: true,
                     ..default_config
-                }
+                },
             ),
             "foo - bar"
         );
