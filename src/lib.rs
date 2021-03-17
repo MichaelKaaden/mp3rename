@@ -274,6 +274,10 @@ mod tests {
             "foo: bar"
         );
         assert_eq!(
+            sanitize_file_or_directory_name(" foo bar ", &default_config),
+            "foo bar"
+        );
+        assert_eq!(
             sanitize_file_or_directory_name(
                 "01 Science Fiction & Double Feature.mp3",
                 &default_config,
