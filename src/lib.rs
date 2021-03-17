@@ -89,29 +89,25 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
         })
         .to_string_lossy();
 
-    let mut new_path = old_path.with_file_name(OsString::from(to_name));
-    let mut new_name = sanitize_file_or_directory_name(
-        &new_path
-            .file_name()
-            .unwrap_or_else(|| {
-                panic!(
-                    "Cannot retrieve name part from {}",
-                    new_path.to_string_lossy()
-                )
-            })
-            .to_string_lossy(),
-        config,
-    );
-
+    let mut to_name = sanitize_file_or_directory_name(to_name, config);
     if config.shorten_names {
-        new_name = shorten_names(&new_path, &new_name, config);
+        to_name = shorten_names(&old_path, &to_name, config);
     }
 
-    if old_name == new_name {
+    let new_path = old_path.with_file_name(OsString::from(to_name));
+    let new_name = &new_path
+        .file_name()
+        .unwrap_or_else(|| {
+            panic!(
+                "Cannot retrieve name part from {}",
+                new_path.to_string_lossy()
+            )
+        })
+        .to_string_lossy();
+
+    if old_name.eq(new_name) {
         return;
     }
-
-    new_path = new_path.with_file_name(&new_name);
 
     println!("Renaming \"{}\" to \"{}\"", old_name, new_name);
 
