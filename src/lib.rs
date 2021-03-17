@@ -12,6 +12,7 @@ pub mod dir_contents;
 mod music_file;
 mod music_metadata;
 mod ordinary_file;
+mod util;
 
 pub fn rename_music_files(config: &Config) {
     let contents = DirContents::new(&config);
@@ -177,14 +178,17 @@ fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String 
 
 /// Returns the path's extension (or the empty string)
 fn get_extension(path: &PathBuf) -> (String, i32) {
-    let (extension, extension_len) = match path.extension() {
-        None => ("".to_string(), 0),
-        Some(ext) => {
-            let plain_ext = ext.to_string_lossy().to_string().to_lowercase(); // without leading dot!
-            (format!(".{}", plain_ext), (plain_ext.len() + 1) as i32)
+    if let Some(ext_without_dot) = path.extension() {
+        let ext = format!(
+            ".{}",
+            ext_without_dot.to_string_lossy().to_string().to_lowercase()
+        );
+        if util::is_music_filename(&ext) {
+            let len: i32 = ext.len() as i32;
+            return (ext, len);
         }
-    };
-    (extension, extension_len)
+    }
+    ("".to_string(), 0)
 }
 
 /// Returns the file name's stem, i. e. the name without the extension given as second argument
@@ -268,21 +272,21 @@ mod tests {
         };
 
         assert_eq!(
-            shorten_names(&PathBuf::from("/foo/bar.txt"), "foo.txt", &config),
-            "foo.txt"
+            shorten_names(&PathBuf::from("/foo/bar.mp3"), "foo.mp3", &config),
+            "foo.mp3"
         );
         assert_eq!(
             shorten_names(&PathBuf::from("/foo/bar.flac"), "123456789.flac", &config),
             "123.flac"
         );
         assert_eq!(
-            shorten_names(&PathBuf::from("/foo/bar.txt"), "foo bar.txt", &config),
-            "foo.txt"
+            shorten_names(&PathBuf::from("/foo/bar.mp3"), "foo bar.mp3", &config),
+            "foo.mp3"
         );
         assert_eq!(
             shorten_names(
-                &PathBuf::from("/foo/bar.txt"),
-                "foo bar.txt",
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
                 &Config {
                     dry_run: false,
                     name_length: 9,
@@ -291,14 +295,14 @@ mod tests {
                     rename_directory: false,
                     shorten_names: false,
                     start_dir: Default::default(),
-                    verbose: false
-                }
+                    verbose: false,
+                },
             ),
-            "foo b.txt"
+            "foo b.mp3"
         );
         assert_eq!(
-            shorten_names(&PathBuf::from("/foo/bar.txt"), "foo bar.blah.txt", &config),
-            "foo.txt"
+            shorten_names(&PathBuf::from("/foo/bar.mp3"), "foo bar.blah.mp3", &config),
+            "foo.mp3"
         );
         assert_eq!(
             shorten_names(&PathBuf::from("/foo/bar"), "foo bar", &config),
