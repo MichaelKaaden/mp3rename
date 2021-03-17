@@ -140,11 +140,14 @@ fn sanitize_file_or_directory_name(filename: &str) -> String {
     name = name.replace(">", "");
     name = name.replace("|", ", ");
 
-    // remove multiple dots at the start
+    // now we added blanks, let's handle the ones in the beginning and at the end
+    name = name.trim().to_string();
+
+    // remove dots at the start
     let re = Regex::new(r"^[.]*").unwrap();
     name = re.replace_all(&name, "").to_string();
 
-    // remove multiple dots at the end
+    // remove dots at the end
     let re = Regex::new(r"[.]*$").unwrap();
     name = re.replace_all(&name, "").to_string();
 
@@ -195,33 +198,56 @@ mod tests {
 
     #[test]
     fn sanitization() {
-        assert_eq!(sanitize_file_or_directory_name("foo\\bar"), "foobar");
-        assert_eq!(sanitize_file_or_directory_name("foo|bar"), "foo, bar");
-        assert_eq!(sanitize_file_or_directory_name("foo/bar"), "foo & bar");
-        assert_eq!(sanitize_file_or_directory_name("foo\tbar"), "foo bar");
-        assert_eq!(sanitize_file_or_directory_name("foo   bar"), "foo bar");
-        assert_eq!(sanitize_file_or_directory_name("foo \t \t bar"), "foo bar");
-        assert_eq!(
-            sanitize_file_or_directory_name("foo ??? bar"),
-            "foo Fragezeichen bar"
-        );
-        assert_eq!(sanitize_file_or_directory_name("foo ? bar"), "foo bar");
-        assert_eq!(sanitize_file_or_directory_name("?foo bar?"), "foo bar");
-        assert_eq!(sanitize_file_or_directory_name("\"foo bar\""), "foo bar");
-        assert_eq!(
-            sanitize_file_or_directory_name("*foo ** bar*"),
-            "_foo __ bar_"
-        );
         assert_eq!(
             sanitize_file_or_directory_name("$foo $$ bar$"),
             "_foo __ bar_"
         );
+
+        // special handling for "The Three ???"
+        assert_eq!(
+            sanitize_file_or_directory_name("foo ??? bar"),
+            "foo Fragezeichen bar"
+        );
+
+        assert_eq!(sanitize_file_or_directory_name("foo\\bar"), "foobar");
+
+        assert_eq!(sanitize_file_or_directory_name("foo/bar"), "foo & bar");
+        assert_eq!(sanitize_file_or_directory_name("foo/"), "foo &");
+
+        assert_eq!(sanitize_file_or_directory_name("foo: bar"), "foo - bar");
+        assert_eq!(sanitize_file_or_directory_name("foo:"), "foo -");
+
+        assert_eq!(
+            sanitize_file_or_directory_name("*foo * bar*"),
+            "_foo _ bar_"
+        );
+        assert_eq!(
+            sanitize_file_or_directory_name("*foo ** bar*"),
+            "_foo __ bar_"
+        );
+
+        assert_eq!(sanitize_file_or_directory_name("foo ? bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("?foo bar?"), "foo bar");
+
+        assert_eq!(sanitize_file_or_directory_name("\"foo bar\""), "foo bar");
+
+        assert_eq!(sanitize_file_or_directory_name("<foo bar>"), "foo bar");
+
+        assert_eq!(sanitize_file_or_directory_name("foo|bar"), "foo, bar");
+
+        // whitespace
+        assert_eq!(sanitize_file_or_directory_name("foo\tbar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo   bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo \t \t bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name(" foo bar "), "foo bar");
+
+        // leading and trailing dots
         assert_eq!(sanitize_file_or_directory_name("...foo bar"), "foo bar");
         assert_eq!(sanitize_file_or_directory_name(".foo bar"), "foo bar");
         assert_eq!(sanitize_file_or_directory_name("foo bar..."), "foo bar");
         assert_eq!(sanitize_file_or_directory_name("foo bar."), "foo bar");
-        assert_eq!(sanitize_file_or_directory_name(" foo bar "), "foo bar");
-        assert_eq!(sanitize_file_or_directory_name("foo: bar"), "foo - bar");
+
+        // example with french punctuation marks
         assert_eq!(
             sanitize_file_or_directory_name("Où est le bien ? Où est le mal ?"),
             "Où est le bien Où est le mal"
