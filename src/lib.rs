@@ -89,7 +89,14 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
         })
         .to_string_lossy();
 
-    let mut to_name = sanitize_file_or_directory_name(to_name, config);
+    // sanitize the canonical name *without* extension to catch cases like
+    // "Foo....mp3" which should become "Foo.mp3"
+    let (extension, _): (String, i32) = get_extension(&old_path);
+    let mut short_name_stem = get_name_stem(to_name, &extension); // both parameters use lowercase for the extension
+    short_name_stem = sanitize_file_or_directory_name(&short_name_stem, config);
+
+    // now rebuild the name *with* the extension to be able to shorten the canonical name
+    let mut to_name = format!("{}{}", short_name_stem, extension);
     if config.shorten_names {
         to_name = shorten_names(&old_path, &to_name, config);
     }
@@ -168,7 +175,7 @@ fn get_extension(path: &PathBuf) -> (String, i32) {
     let (extension, extension_len) = match path.extension() {
         None => ("".to_string(), 0),
         Some(ext) => {
-            let plain_ext = ext.to_string_lossy().to_string(); // without leading dot
+            let plain_ext = ext.to_string_lossy().to_string().to_lowercase(); // without leading dot!
             (format!(".{}", plain_ext), (plain_ext.len() + 1) as i32)
         }
     };
