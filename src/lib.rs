@@ -93,7 +93,7 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
     // "Foo....mp3" which should become "Foo.mp3"
     let (extension, _): (String, i32) = get_extension(&old_path);
     let mut short_name_stem = get_name_stem(to_name, &extension); // both parameters use lowercase for the extension
-    short_name_stem = sanitize_file_or_directory_name(&short_name_stem, config);
+    short_name_stem = sanitize_file_or_directory_name(&short_name_stem);
 
     // now rebuild the name *with* the extension to be able to shorten the canonical name
     let mut to_name = format!("{}{}", short_name_stem, extension);
@@ -125,33 +125,35 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
     }
 }
 
-fn sanitize_file_or_directory_name(filename: &str, config: &Config) -> String {
-    let mut name = filename.trim().replace("\\", "/");
-    name = name.replace("|", ", ");
-    name = name.replace("/", " & ");
+fn sanitize_file_or_directory_name(filename: &str) -> String {
+    let mut name = filename.replace("$", "_");
     name = name.replace("???", "Fragezeichen");
+
+    // Windows doesn't like any of the following characters
+    name = name.replace("\\", "");
+    name = name.replace("/", " & ");
+    name = name.replace(":", " -");
+    name = name.replace("*", "_");
     name = name.replace("?", "");
     name = name.replace("\"", "");
-    name = name.replace("*", "_");
-    name = name.replace("$", "_");
+    name = name.replace("<", "");
+    name = name.replace(">", "");
+    name = name.replace("|", ", ");
 
-    if config.use_fatfs_names {
-        name = name.replace(":", " -");
-    }
-
-    // replace multiple dots at the start with nothing
+    // remove multiple dots at the start
     let re = Regex::new(r"^[.]*").unwrap();
     name = re.replace_all(&name, "").to_string();
 
-    // replace multiple dots at the end with nothing
+    // remove multiple dots at the end
     let re = Regex::new(r"[.]*$").unwrap();
     name = re.replace_all(&name, "").to_string();
 
-    // replace multiple blanks with one blank
+    // replace whitespace with only one blank each
     let re = Regex::new(r"\s+").unwrap();
     name = re.replace_all(&name, " ").to_string();
 
-    name
+    // remove any blanks at the name's start or end
+    name.trim().to_string()
 }
 
 fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String {
@@ -193,99 +195,36 @@ mod tests {
 
     #[test]
     fn sanitization() {
-        let default_config = Config {
-            dry_run: false,
-            name_length: 0,
-            remove_artist: false,
-            remove_ordinary_files: false,
-            rename_directory: false,
-            shorten_names: false,
-            start_dir: Default::default(),
-            use_fatfs_names: false,
-            verbose: false,
-        };
-
+        assert_eq!(sanitize_file_or_directory_name("foo\\bar"), "foobar");
+        assert_eq!(sanitize_file_or_directory_name("foo|bar"), "foo, bar");
+        assert_eq!(sanitize_file_or_directory_name("foo/bar"), "foo & bar");
+        assert_eq!(sanitize_file_or_directory_name("foo\tbar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo   bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo \t \t bar"), "foo bar");
         assert_eq!(
-            sanitize_file_or_directory_name("foo\\bar", &default_config),
-            "foo & bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo|bar", &default_config),
-            "foo, bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo/bar", &default_config),
-            "foo & bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo\tbar", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo   bar", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo \t \t bar", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo ??? bar", &default_config),
+            sanitize_file_or_directory_name("foo ??? bar"),
             "foo Fragezeichen bar"
         );
+        assert_eq!(sanitize_file_or_directory_name("foo ? bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("?foo bar?"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("\"foo bar\""), "foo bar");
         assert_eq!(
-            sanitize_file_or_directory_name("foo ? bar", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("?foo bar?", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("\"foo bar\"", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("*foo ** bar*", &default_config),
+            sanitize_file_or_directory_name("*foo ** bar*"),
             "_foo __ bar_"
         );
         assert_eq!(
-            sanitize_file_or_directory_name("$foo $$ bar$", &default_config),
+            sanitize_file_or_directory_name("$foo $$ bar$"),
             "_foo __ bar_"
         );
+        assert_eq!(sanitize_file_or_directory_name("...foo bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name(".foo bar"), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo bar..."), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo bar."), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name(" foo bar "), "foo bar");
+        assert_eq!(sanitize_file_or_directory_name("foo: bar"), "foo - bar");
         assert_eq!(
-            sanitize_file_or_directory_name("...foo bar", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name(".foo bar", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo bar...", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo bar.", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name("foo: bar", &default_config),
-            "foo: bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name(" foo bar ", &default_config),
-            "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name(
-                "foo: bar",
-                &Config {
-                    use_fatfs_names: true,
-                    ..default_config
-                },
-            ),
-            "foo - bar"
+            sanitize_file_or_directory_name("Où est le bien ? Où est le mal ?"),
+            "Où est le bien Où est le mal"
         );
     }
 
@@ -299,7 +238,6 @@ mod tests {
             rename_directory: false,
             shorten_names: false,
             start_dir: Default::default(),
-            use_fatfs_names: false,
             verbose: false,
         };
 
@@ -327,7 +265,6 @@ mod tests {
                     rename_directory: false,
                     shorten_names: false,
                     start_dir: Default::default(),
-                    use_fatfs_names: false,
                     verbose: false
                 }
             ),

@@ -14,7 +14,6 @@ pub struct Config {
     pub rename_directory: bool,
     pub shorten_names: bool,
     pub start_dir: PathBuf,
-    pub use_fatfs_names: bool,
     pub verbose: bool,
 }
 
@@ -23,7 +22,6 @@ impl Config {
         const ARTIST: &str = "artist";
         const DIRECTORY: &str = "directory";
         const DRY_RUN: &str = "dry-run";
-        const FATFS: &str = "fatfs";
         const LENGTH: &str = "limit-length";
         const LENGTH_VALUE: &str = "LENGTH";
         const REMOVE: &str = "remove";
@@ -56,12 +54,6 @@ tags in the music files.",
                     .short("n")
                     .long(DRY_RUN)
                     .help("Dry run mode"),
-            )
-            .arg(
-                Arg::with_name(FATFS)
-                    .short("f")
-                    .long(FATFS)
-                    .help("Prepare file and directory names for FAT filesystems"),
             )
             .arg(
                 Arg::with_name(LENGTH)
@@ -126,7 +118,6 @@ tags in the music files.",
             rename_directory: matches.is_present(DIRECTORY),
             shorten_names: matches.is_present(LENGTH),
             start_dir,
-            use_fatfs_names: matches.is_present(FATFS),
             verbose: matches.is_present(VERBOSE),
         }
     }
@@ -145,7 +136,6 @@ impl fmt::Display for Config {
         )?;
         writeln!(f, "Rename directory:         {:?}", self.rename_directory)?;
         writeln!(f, "Shorten names:            {:?}", self.shorten_names)?;
-        writeln!(f, "Use FAT-compatible names: {:?}", self.use_fatfs_names)?;
         writeln!(f, "Verbose mode:             {:?}", self.verbose)
     }
 }
