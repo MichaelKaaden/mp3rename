@@ -128,7 +128,7 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
 fn sanitize_file_or_directory_name(filename: &str, config: &Config) -> String {
     let mut name = filename.trim().replace("\\", "/");
     name = name.replace("|", ", ");
-    name = name.replace("/", "&");
+    name = name.replace("/", " & ");
     name = name.replace("???", "Fragezeichen");
     name = name.replace("?", "");
     name = name.replace("\"", "");
@@ -207,7 +207,7 @@ mod tests {
 
         assert_eq!(
             sanitize_file_or_directory_name("foo\\bar", &default_config),
-            "foo&bar"
+            "foo & bar"
         );
         assert_eq!(
             sanitize_file_or_directory_name("foo|bar", &default_config),
@@ -215,7 +215,7 @@ mod tests {
         );
         assert_eq!(
             sanitize_file_or_directory_name("foo/bar", &default_config),
-            "foo&bar"
+            "foo & bar"
         );
         assert_eq!(
             sanitize_file_or_directory_name("foo\tbar", &default_config),
@@ -276,13 +276,6 @@ mod tests {
         assert_eq!(
             sanitize_file_or_directory_name(" foo bar ", &default_config),
             "foo bar"
-        );
-        assert_eq!(
-            sanitize_file_or_directory_name(
-                "01 Science Fiction & Double Feature.mp3",
-                &default_config,
-            ),
-            "01 Science Fiction & Double Feature.mp3"
         );
         assert_eq!(
             sanitize_file_or_directory_name(
