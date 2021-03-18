@@ -14,11 +14,13 @@ pub struct MusicMetadata {
 
 impl MusicMetadata {
     pub fn new(music_file: &std::fs::DirEntry) -> Option<MusicMetadata> {
-        let tag = audiotags::Tag::new()
-            .read_from_path(music_file.path())
-            .unwrap_or_else(|_| {
-                panic!("Could not read \"{}\"", music_file.path().to_string_lossy())
-            });
+        let tag = match audiotags::Tag::new().read_from_path(music_file.path()) {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("{}: {}", music_file.path().to_string_lossy(), e);
+                return None;
+            }
+        };
 
         if let Some(album) = tag.album_title() {
             if let Some(artist) = tag.artist() {
