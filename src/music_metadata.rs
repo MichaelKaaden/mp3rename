@@ -39,7 +39,7 @@ impl MusicMetadata {
         }
 
         eprintln!(
-            "Error: No tags found in {}",
+            "Error: Incomplete tags found in {} -- need album, artist, title, and track number.",
             music_file.path().to_string_lossy()
         );
         None
