@@ -3,7 +3,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use crate::config::Config;
-use crate::dir_contents::DirContents;
+use crate::music_file::MusicFile;
+use crate::ordinary_file::OrdinaryFile;
 
 pub mod config;
 pub mod dir_contents;
@@ -13,27 +14,58 @@ mod ordinary_file;
 mod util;
 
 pub fn rename_music_files(config: &Config) {
-    let contents = DirContents::new(&config);
-    for dir in contents {
-        handle_directory(&dir, config);
+    let all_files_and_directories = util::get_list_of_dirs(&config);
+
+    // iterate over directories containing at least one music file
+    for dir in all_files_and_directories {
+        if dir.file_type().is_dir() {
+            let readdir = fs::read_dir(dir.path());
+            if readdir.is_ok() {
+                let (music, others): (Vec<fs::DirEntry>, Vec<fs::DirEntry>) = readdir
+                    .unwrap()
+                    .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
+                    .map(|dir_entry| dir_entry.unwrap())
+                    .partition(|dir_entry| util::is_music_file(dir_entry));
+
+                // only use directories containing music files
+                if music.len() > 0 {
+                    let mut music_files: Vec<MusicFile> = music
+                        .into_iter()
+                        .map(|dir_entry| MusicFile::new(dir_entry))
+                        .filter(|music_file| music_file.music_metadata.is_some())
+                        .collect();
+                    music_files.sort_by(|left, right| MusicFile::sort_func(left, right));
+
+                    let ordinary_files: Vec<OrdinaryFile> =
+                        others.into_iter().map(|o| OrdinaryFile::new(o)).collect();
+
+                    handle_directory(dir, music_files, ordinary_files, config);
+                }
+            }
+        }
     }
 }
 
-fn handle_directory(dir: &DirContents, config: &Config) {
+fn handle_directory(
+    dir_entry: walkdir::DirEntry,
+    music_files: Vec<MusicFile>,
+    ordinary_files: Vec<OrdinaryFile>,
+    config: &Config,
+) {
     println!("==============");
     println!(
         "Entering directory \"{}\"",
-        dir.dir_entry.path().to_string_lossy()
+        dir_entry.path().to_string_lossy()
     );
 
-    let same_artist = dir.same_artists();
+    let same_artist = dir_contents::same_artists(&music_files);
     if config.verbose {
         println!("Same artist: {}", same_artist);
     }
 
     // rename music files
-    for music_file in &dir.music_files {
-        match music_file.canonical_name(config, same_artist, dir.music_files.len()) {
+    for music_file in &music_files {
+        match music_file.canonical_name(config, same_artist, music_files.len()) {
             Some(canonical_name) => {
                 if config.verbose {
                     println!("Canonical name: {}", canonical_name);
@@ -45,8 +77,8 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     }
 
     // remove ordinary files
-    if dir.ordinary_files.len() > 0 && config.remove_ordinary_files {
-        for file in &dir.ordinary_files {
+    if ordinary_files.len() > 0 && config.remove_ordinary_files {
+        for file in &ordinary_files {
             println!("Removing {}", file.dir_entry.path().to_string_lossy());
             if !config.dry_run {
                 if let Err(err) = fs::remove_file(file.dir_entry.path()) {
@@ -61,13 +93,13 @@ fn handle_directory(dir: &DirContents, config: &Config) {
     }
 
     // rename the directory
-    let same_album_title = dir.same_album_title();
+    let same_album_title = dir_contents::same_album_title(&music_files);
     if let Some(album_title) = same_album_title {
         if config.verbose {
             println!("Same album title: {}", album_title);
         }
         if config.rename_directory {
-            rename_file_or_directory(dir.dir_entry.path().to_path_buf(), config, album_title)
+            rename_file_or_directory(dir_entry.path().to_path_buf(), config, album_title)
         }
     } else {
         if config.verbose {

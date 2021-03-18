@@ -2,8 +2,30 @@ use std::path::PathBuf;
 use std::{cmp, fs};
 
 use regex::Regex;
+use walkdir::WalkDir;
 
 use crate::config::Config;
+
+/// Returns the list of directories.
+pub fn get_list_of_dirs(config: &Config) -> Vec<walkdir::DirEntry> {
+    WalkDir::new(&config.start_dir)
+        .contents_first(true)
+        .into_iter()
+        .filter_entry(|e| e.file_type().is_dir())
+        // filter out errors (cannot print warnings!)
+        //.filter_map(Result::ok)
+        // filter *and* report errors
+        .filter(|e| match e {
+            Ok(_) => true,
+            Err(err) => {
+                eprintln!("Error traversing directories: {}", err);
+                false
+            }
+        })
+        // convert to DirEntry
+        .map(|e| e.unwrap())
+        .collect()
+}
 
 pub fn is_music_file(entry: &fs::DirEntry) -> bool {
     let path = entry.path();
