@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/mp3bandtitle.iml" filepath="$PROJECT_DIR$/.idea/mp3bandtitle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/rust_mp3rename.iml" filepath="$PROJECT_DIR$/.idea/rust_mp3rename.iml" />
     </modules>
   </component>
 </project>
