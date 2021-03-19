@@ -1,5 +1,5 @@
-use mp3bandtitle::config::Config;
-use mp3bandtitle::rename_music_files;
+use mp3rename::config::Config;
+use mp3rename::rename_music_files;
 
 fn main() {
     let config = Config::new();

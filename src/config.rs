@@ -28,7 +28,7 @@ impl Config {
         const START_DIR: &str = "START_DIR";
         const VERBOSE: &str = "verbose";
 
-        let matches = App::new("mp3bandtitle")
+        let matches = App::new("mp3rename")
             // use crate_version! to pull the version number
             .version(crate_version!())
             .author(crate_authors!())

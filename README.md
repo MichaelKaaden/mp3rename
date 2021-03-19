@@ -1,4 +1,4 @@
-# mp3bandtitle
+# mp3rename
 
 Traverses a directory tree and renames all music files and, optionally, the directories containing them according to the
 tags in the music files.
