@@ -8,7 +8,7 @@ pub fn same_artists(music_files: &Vec<MusicFile>) -> bool {
         .map(|m| &m.artist)
         .collect();
 
-    if artists.len() > 0 {
+    if !artists.is_empty() {
         let first_artist = artists[0];
         for artist in artists {
             if artist != first_artist {
@@ -30,7 +30,7 @@ pub fn same_album_title(music_files: &Vec<MusicFile>) -> Option<&String> {
         .map(|m| &m.album)
         .collect();
 
-    if albums.len() > 0 {
+    if !albums.is_empty() {
         let first_album = albums[0];
         for album in albums {
             if album != first_album {
