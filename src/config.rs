@@ -6,6 +6,7 @@ use std::{env, fmt, fs, process};
 
 use clap::{crate_authors, crate_version, App, Arg};
 
+#[derive(Default)]
 pub struct Config {
     pub dry_run: bool,
     pub name_length: u32,
