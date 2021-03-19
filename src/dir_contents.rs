@@ -1,7 +1,7 @@
 use crate::music_file::MusicFile;
 
 /// Has the whole directory the same artist for every music file?
-pub fn same_artists(music_files: &Vec<MusicFile>) -> bool {
+pub fn same_artists(music_files: &[MusicFile]) -> bool {
     let artists: Vec<&String> = music_files
         .iter()
         .filter_map(|m| m.music_metadata.as_ref())
@@ -23,7 +23,7 @@ pub fn same_artists(music_files: &Vec<MusicFile>) -> bool {
 }
 
 // Which album name does the whole directory have for all music files?
-pub fn same_album_title(music_files: &Vec<MusicFile>) -> Option<&String> {
+pub fn same_album_title(music_files: &[MusicFile]) -> Option<&String> {
     let albums: Vec<&String> = music_files
         .iter()
         .filter_map(|m| m.music_metadata.as_ref())
