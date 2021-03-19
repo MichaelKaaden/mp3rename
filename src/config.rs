@@ -76,9 +76,9 @@ The resulting file name will have the form
             .arg(
                 // this is a positional argument
                 Arg::with_name(START_DIR)
-                    .help("the directory to start from (optional)")
+                    .help("the directory to start from")
                     .index(1)
-                    .required(false),
+                    .required(true),
             )
             .arg(
                 Arg::with_name(VERBOSE)
@@ -89,12 +89,8 @@ The resulting file name will have the form
 
             .get_matches();
 
-        let start_dir = String::from(
-            matches
-                .value_of(START_DIR)
-                .unwrap_or(env::current_dir().unwrap().to_str().unwrap()),
-        );
-
+        // the directory is mandatory
+        let start_dir = matches.value_of(START_DIR).unwrap();
         let start_dir = match string_to_path(&start_dir) {
             Ok(path) => path,
             Err(_) => {
