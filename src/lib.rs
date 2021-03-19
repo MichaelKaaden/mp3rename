@@ -19,10 +19,8 @@ pub fn rename_music_files(config: &Config) {
     // iterate over directories containing at least one music file
     for dir in all_files_and_directories {
         if dir.file_type().is_dir() {
-            let readdir = fs::read_dir(dir.path());
-            if readdir.is_ok() {
+            if let Ok(readdir) = fs::read_dir(dir.path()) {
                 let (music, others): (Vec<fs::DirEntry>, Vec<fs::DirEntry>) = readdir
-                    .unwrap()
                     .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
                     .map(|dir_entry| dir_entry.unwrap())
                     .partition(|dir_entry| util::is_music_file(dir_entry));
