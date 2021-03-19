@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "mp3rename"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "audiotags",
  "clap",
