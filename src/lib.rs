@@ -19,25 +19,23 @@ pub fn rename_music_files(config: &Config) {
     // iterate over directories containing at least one music file
     for dir in all_files_and_directories {
         if dir.file_type().is_dir() {
-            let readdir = fs::read_dir(dir.path());
-            if readdir.is_ok() {
+            if let Ok(readdir) = fs::read_dir(dir.path()) {
                 let (music, others): (Vec<fs::DirEntry>, Vec<fs::DirEntry>) = readdir
-                    .unwrap()
                     .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
                     .map(|dir_entry| dir_entry.unwrap())
                     .partition(|dir_entry| util::is_music_file(dir_entry));
 
                 // only use directories containing music files
-                if music.len() > 0 {
+                if !music.is_empty() {
                     let mut music_files: Vec<MusicFile> = music
                         .into_iter()
-                        .map(|dir_entry| MusicFile::new(dir_entry))
+                        .map(MusicFile::new)
                         .filter(|music_file| music_file.music_metadata.is_some())
                         .collect();
                     music_files.sort_by(|left, right| MusicFile::sort_func(left, right));
 
                     let ordinary_files: Vec<OrdinaryFile> =
-                        others.into_iter().map(|o| OrdinaryFile::new(o)).collect();
+                        others.into_iter().map(OrdinaryFile::new).collect();
 
                     handle_directory(dir, music_files, ordinary_files, config);
                 }
@@ -77,7 +75,7 @@ fn handle_directory(
     }
 
     // remove ordinary files
-    if ordinary_files.len() > 0 && config.remove_ordinary_files {
+    if !ordinary_files.is_empty() && config.remove_ordinary_files {
         for file in &ordinary_files {
             println!("Removing {}", file.dir_entry.path().to_string_lossy());
             if !config.dry_run {
@@ -101,10 +99,8 @@ fn handle_directory(
         if config.rename_directory {
             rename_file_or_directory(dir_entry.path().to_path_buf(), config, album_title)
         }
-    } else {
-        if config.verbose {
-            println!("Multiple album names.")
-        }
+    } else if config.verbose {
+        println!("Multiple album names.")
     }
 }
 

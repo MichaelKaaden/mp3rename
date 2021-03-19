@@ -195,14 +195,8 @@ mod tests {
     #[test]
     fn name_shortening() {
         let config = Config {
-            dry_run: false,
             name_length: 8,
-            remove_artist: false,
-            remove_ordinary_files: false,
-            rename_directory: false,
-            shorten_names: false,
-            start_dir: Default::default(),
-            verbose: false,
+            ..Config::default()
         };
 
         assert_eq!(
