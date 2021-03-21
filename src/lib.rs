@@ -7,7 +7,6 @@ use crate::music_file::MusicFile;
 use crate::ordinary_file::OrdinaryFile;
 
 pub mod config;
-pub mod dir_contents;
 mod music_file;
 mod music_metadata;
 mod ordinary_file;
@@ -56,7 +55,7 @@ fn handle_directory(
         dir_entry.path().to_string_lossy()
     );
 
-    let same_artist = dir_contents::same_artists(&music_files);
+    let same_artist = music_file::same_artists(&music_files);
     if config.verbose {
         println!("Same artist: {}", same_artist);
     }
@@ -91,7 +90,7 @@ fn handle_directory(
     }
 
     // rename the directory
-    let same_album_title = dir_contents::same_album_title(&music_files);
+    let same_album_title = music_file::same_album_title(&music_files);
     if let Some(album_title) = same_album_title {
         if config.verbose {
             println!("Same album title: {}", album_title);
