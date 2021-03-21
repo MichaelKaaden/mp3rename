@@ -84,9 +84,10 @@ pub fn sanitize_file_or_directory_name(filename: &str) -> String {
 }
 
 /// Shortens a file name so that it (together with the extension) fits in a given length
-pub fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String {
-    let (extension, extension_len): (String, usize) = get_extension(new_path);
-    let stem = get_name_stem(new_name, &extension);
+/// Combines the path's extension with the stem from the name.
+pub fn shorten_names(path: &PathBuf, name: &str, config: &Config) -> String {
+    let (extension, extension_len): (String, usize) = get_extension(path);
+    let stem = get_name_stem(name, &extension);
 
     let len = cmp::min(
         cmp::max((config.name_length as i32) - (extension_len as i32), 0) as usize, // get a positive number
@@ -281,16 +282,26 @@ mod tests {
     fn test_get_extension() {
         assert_eq!(
             get_extension(&PathBuf::from("Foo Bar")),
-            (String::from(""), 0)
+            (String::from(""), 0),
+            "wrong handling of names without extension"
         );
         assert_eq!(
             get_extension(&PathBuf::from("Titan A.E.")),
-            (String::from(""), 0)
+            (String::from(""), 0),
+            "wrong handling of names without music file extension"
         );
         assert_eq!(get_extension(&PathBuf::from("E.T.")), (String::from(""), 0));
         assert_eq!(
             get_extension(&PathBuf::from("Titan.flac")),
-            (String::from(".flac"), 5)
+            (String::from(".flac"), 5),
+            "wrong handling of names with extension"
         );
+    }
+
+    #[test]
+    fn test_get_name_stem() {
+        assert_eq!(get_name_stem("foo.mp3", ".mp3"), "foo");
+        assert_eq!(get_name_stem("foo.mp3", "mp3"), "foo.");
+        assert_eq!(get_name_stem("foo.mp3", ""), "foo.mp3");
     }
 }
