@@ -2,8 +2,6 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::fmt::Formatter;
 
-
-
 pub struct MusicMetadata {
     pub album: String,
     pub artist: String,
@@ -22,6 +20,7 @@ impl MusicMetadata {
             }
         };
 
+        // we only accept *complete* metadata
         if let Some(album) = tag.album_title() {
             if let Some(artist) = tag.artist() {
                 if let Some(title) = tag.title() {
