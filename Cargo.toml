@@ -1,6 +1,6 @@
 [package]
 name = "mp3rename"
-version = "1.0.4"
+version = "1.0.5-pre"
 authors = ["Michael Kaaden <github@kaaden.net>"]
 edition = "2018"
 
