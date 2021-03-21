@@ -2,8 +2,9 @@ extern crate clap;
 
 use std::fmt::Formatter;
 use std::path::PathBuf;
-use std::{env, fmt, fs, process};
+use std::{env, fmt, process};
 
+use crate::util;
 use clap::{crate_authors, crate_version, App, Arg};
 
 #[derive(Default)]
@@ -91,7 +92,7 @@ The resulting file name will have the form
 
         // the directory is mandatory
         let start_dir = matches.value_of(START_DIR).unwrap();
-        let start_dir = match string_to_path(&start_dir) {
+        let start_dir = match util::string_to_path(&start_dir) {
             Ok(path) => path,
             Err(_) => {
                 eprintln!("Couldn't find the path \"{}\"", start_dir);
@@ -138,8 +139,4 @@ impl fmt::Display for Config {
         writeln!(f, "Shorten names:            {:?}", self.shorten_names)?;
         writeln!(f, "Verbose mode:             {:?}", self.verbose)
     }
-}
-
-fn string_to_path(file_name: &str) -> std::io::Result<PathBuf> {
-    fs::canonicalize(PathBuf::from(file_name))
 }

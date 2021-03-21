@@ -98,7 +98,7 @@ pub fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> Str
     format!("{}{}", &short_name_stem[..len].trim(), extension)
 }
 
-/// Returns the path's extension (or the empty string)
+/// Returns the path's extension with leading dot (or the empty string)
 pub fn get_extension(path: &PathBuf) -> (String, i32) {
     if let Some(ext_without_dot) = path.extension() {
         let ext = format!(
@@ -118,12 +118,17 @@ pub fn get_name_stem(name: &str, extension: &str) -> String {
     name.replace(&extension, "")
 }
 
+/// Returns a path made of the given string slice
+pub fn string_to_path(file_name: &str) -> std::io::Result<PathBuf> {
+    fs::canonicalize(PathBuf::from(file_name))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn matches_music() {
+    fn test_is_music_filename() {
         assert_eq!(is_music_filename("/tmp/music.mp3"), true);
         assert_eq!(is_music_filename("/tmp/music.mp33"), false);
         assert_eq!(is_music_filename("/tmp/music.Mp3"), true);
@@ -135,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn sanitization() {
+    fn test_sanitize_file_or_directory_name() {
         assert_eq!(
             sanitize_file_or_directory_name("$foo $$ bar$"),
             "_foo __ bar_"
@@ -193,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn name_shortening() {
+    fn test_shorten_names() {
         let config = Config {
             name_length: 8,
             ..Config::default()
@@ -243,6 +248,23 @@ mod tests {
         assert_eq!(
             shorten_names(&PathBuf::from("/foo/bar"), "123456789", &config),
             "12345678"
+        );
+    }
+
+    #[test]
+    fn test_get_extension() {
+        assert_eq!(
+            get_extension(&PathBuf::from("Foo Bar")),
+            (String::from(""), 0)
+        );
+        assert_eq!(
+            get_extension(&PathBuf::from("Titan A.E.")),
+            (String::from(""), 0)
+        );
+        assert_eq!(get_extension(&PathBuf::from("E.T.")), (String::from(""), 0));
+        assert_eq!(
+            get_extension(&PathBuf::from("Titan.flac")),
+            (String::from(".flac"), 5)
         );
     }
 }
