@@ -2,8 +2,6 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::fmt::Formatter;
 
-
-
 pub struct MusicMetadata {
     pub album: String,
     pub artist: String,
@@ -22,6 +20,7 @@ impl MusicMetadata {
             }
         };
 
+        // we only accept *complete* metadata
         if let Some(album) = tag.album_title() {
             if let Some(artist) = tag.artist() {
                 if let Some(title) = tag.title() {
@@ -77,5 +76,200 @@ impl fmt::Display for MusicMetadata {
         writeln!(f, "Track Number: {}", self.track_number)?;
         writeln!(f, "Artist:       {}", self.artist)?;
         writeln!(f, "Title:        {}", self.title)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "No tags defined")]
+    fn test_sort_func_panic() {
+        MusicMetadata::sort_func(&None, &None);
+        MusicMetadata::sort_func(
+            &None,
+            &Some(MusicMetadata {
+                album: "".to_string(),
+                artist: "".to_string(),
+                disk_number: None,
+                title: "".to_string(),
+                track_number: 0,
+            }),
+        );
+        MusicMetadata::sort_func(
+            &Some(MusicMetadata {
+                album: "".to_string(),
+                artist: "".to_string(),
+                disk_number: None,
+                title: "".to_string(),
+                track_number: 0,
+            }),
+            &None,
+        );
+    }
+
+    #[test]
+    fn test_sort_func_empty() {
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 0,
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 0,
+                }),
+            ),
+            Ordering::Equal
+        );
+    }
+
+    #[test]
+    fn test_sort_func_disc_number() {
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: Some(1),
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+            ),
+            Ordering::Greater,
+        );
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: Some(1),
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+            ),
+            Ordering::Less,
+        );
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: Some(1),
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: Some(2),
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+            ),
+            Ordering::Less,
+        );
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: Some(2),
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: Some(1),
+                    title: "".to_string(),
+                    track_number: 0
+                }),
+            ),
+            Ordering::Greater,
+        );
+    }
+
+    #[test]
+    fn test_sort_func_track_number() {
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 1
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 2
+                })
+            ),
+            Ordering::Less
+        );
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 2
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 1
+                })
+            ),
+            Ordering::Greater
+        );
+        assert_eq!(
+            MusicMetadata::sort_func(
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 1
+                }),
+                &Some(MusicMetadata {
+                    album: "".to_string(),
+                    artist: "".to_string(),
+                    disk_number: None,
+                    title: "".to_string(),
+                    track_number: 1
+                })
+            ),
+            Ordering::Equal
+        );
     }
 }

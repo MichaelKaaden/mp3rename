@@ -1,6 +1,54 @@
 # mp3rename
 
-Traverses a directory tree and renames all music files and, optionally, the directories containing them according to the
-tags in the music files.
+This command line utility has only one purpose: It traverses a directory tree and renames all music files it discovers
+and, optionally, the directories containing them according to the tags in the music files.
 
-To install this as a binary, please use `cargo install --path .` in this project's root directory. 
+Running `mp3rename -d "./Thimbleweed Park"` yielded the following result:
+
+![What this command line tool does](assets/screenshot.png)
+
+If I had used `mp3rename -ad "./Thimbleweed Park"`, the artist would have been left out as it is the same for all music
+files in this directory.
+
+## Requirements
+
+The program searches for music files with an extension in `<mp3|flac|m4a|m4b|m4p|m4v>`.
+
+The tags for the track number, track tile, artist name, and album name are mandatory. Without them, the program will
+omit the files.
+
+## Installation
+
+To install this as a binary, please use `cargo install --path .` in this project's root directory.
+
+## Running the CLI Tool
+
+```text
+USAGE:
+    mp3rename [FLAGS] [OPTIONS] <START_DIR>
+
+FLAGS:
+    -a, --artist       Removes the artist from the filename if it is the same for all files in a directory
+    -d, --directory    Renames directories according to the album tag
+    -n, --dry-run      Uses dry-run mode
+    -h, --help         Prints help information
+    -r, --remove       Removes non-music files
+    -V, --version      Prints version information
+    -v, --verbose      Be verbose
+
+OPTIONS:
+    -l, --limit-length <LENGTH>    Limits the file and directory names to <LENGTH> characters
+
+ARGS:
+    <START_DIR>    the directory to start from
+
+```
+
+## Result
+
+The resulting file name will have the form
+`<Disc Number><Track Number> <Artist> - <Track Title>.<extension>`.
+
+Optionally, the directory containing the music files will be renamed to the album title (if the same for all music files
+within this directory).
+

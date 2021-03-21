@@ -36,6 +36,7 @@ pub fn is_music_file(entry: &fs::DirEntry) -> bool {
     }
 }
 
+/// Checks if a name's extension is in a list of music file extensions
 pub fn is_music_filename(file_name: &str) -> bool {
     let music_extensions = vec![".mp3", ".flac", ".m4a", ".m4b", ".m4p", ".m4v"];
     let file_name = file_name.to_lowercase();
@@ -82,31 +83,30 @@ pub fn sanitize_file_or_directory_name(filename: &str) -> String {
     name.trim().to_string()
 }
 
-pub fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String {
-    let (extension, extension_len): (String, i32) = get_extension(new_path);
-    let short_name_stem = get_name_stem(new_name, &extension);
+/// Shortens a file name so that it (together with the extension) fits in a given length
+/// Combines the path's extension with the stem from the name.
+pub fn shorten_names(path: &PathBuf, name: &str, config: &Config) -> String {
+    let (extension, extension_len): (String, usize) = get_extension(path);
+    let stem = get_name_stem(name, &extension);
 
     let len = cmp::min(
-        cmp::min(
-            cmp::max((config.name_length as i32) - extension_len, 0) as u32, // get a positive number
-            config.name_length,
-        ) as usize,
-        short_name_stem.len(),
+        cmp::max((config.name_length as i32) - (extension_len as i32), 0) as usize, // get a positive number
+        stem.len(),
     );
 
     // trim to not have a blank before the extension
-    format!("{}{}", &short_name_stem[..len].trim(), extension)
+    format!("{}{}", &stem[..len].trim(), extension)
 }
 
-/// Returns the path's extension (or the empty string)
-pub fn get_extension(path: &PathBuf) -> (String, i32) {
+/// Returns the path's extension with leading dot (or the empty string)
+pub fn get_extension(path: &PathBuf) -> (String, usize) {
     if let Some(ext_without_dot) = path.extension() {
         let ext = format!(
             ".{}",
             ext_without_dot.to_string_lossy().to_string().to_lowercase()
         );
         if is_music_filename(&ext) {
-            let len: i32 = ext.len() as i32;
+            let len = ext.len();
             return (ext, len);
         }
     }
@@ -118,12 +118,17 @@ pub fn get_name_stem(name: &str, extension: &str) -> String {
     name.replace(&extension, "")
 }
 
+/// Returns a path made of the given string slice
+pub fn string_to_path(file_name: &str) -> std::io::Result<PathBuf> {
+    fs::canonicalize(PathBuf::from(file_name))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn matches_music() {
+    fn test_is_music_filename() {
         assert_eq!(is_music_filename("/tmp/music.mp3"), true);
         assert_eq!(is_music_filename("/tmp/music.mp33"), false);
         assert_eq!(is_music_filename("/tmp/music.Mp3"), true);
@@ -135,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn sanitization() {
+    fn test_sanitize_file_or_directory_name() {
         assert_eq!(
             sanitize_file_or_directory_name("$foo $$ bar$"),
             "_foo __ bar_"
@@ -193,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn name_shortening() {
+    fn test_shorten_names() {
         let config = Config {
             name_length: 8,
             ..Config::default()
@@ -216,17 +221,44 @@ mod tests {
                 &PathBuf::from("/foo/bar.mp3"),
                 "foo bar.mp3",
                 &Config {
-                    dry_run: false,
                     name_length: 9,
-                    remove_artist: false,
-                    remove_ordinary_files: false,
-                    rename_directory: false,
-                    shorten_names: false,
-                    start_dir: Default::default(),
-                    verbose: false,
+                    ..Config::default()
                 },
             ),
             "foo b.mp3"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
+                &Config {
+                    name_length: 1,
+                    ..Config::default()
+                },
+            ),
+            ".mp3"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
+                &Config {
+                    name_length: 4,
+                    ..Config::default()
+                },
+            ),
+            ".mp3"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
+                &Config {
+                    name_length: 5,
+                    ..Config::default()
+                },
+            ),
+            "f.mp3"
         );
         assert_eq!(
             shorten_names(&PathBuf::from("/foo/bar.mp3"), "foo bar.blah.mp3", &config),
@@ -244,5 +276,32 @@ mod tests {
             shorten_names(&PathBuf::from("/foo/bar"), "123456789", &config),
             "12345678"
         );
+    }
+
+    #[test]
+    fn test_get_extension() {
+        assert_eq!(
+            get_extension(&PathBuf::from("Foo Bar")),
+            (String::from(""), 0),
+            "wrong handling of names without extension"
+        );
+        assert_eq!(
+            get_extension(&PathBuf::from("Titan A.E.")),
+            (String::from(""), 0),
+            "wrong handling of names without music file extension"
+        );
+        assert_eq!(get_extension(&PathBuf::from("E.T.")), (String::from(""), 0));
+        assert_eq!(
+            get_extension(&PathBuf::from("Titan.flac")),
+            (String::from(".flac"), 5),
+            "wrong handling of names with extension"
+        );
+    }
+
+    #[test]
+    fn test_get_name_stem() {
+        assert_eq!(get_name_stem("foo.mp3", ".mp3"), "foo");
+        assert_eq!(get_name_stem("foo.mp3", "mp3"), "foo.");
+        assert_eq!(get_name_stem("foo.mp3", ""), "foo.mp3");
     }
 }
