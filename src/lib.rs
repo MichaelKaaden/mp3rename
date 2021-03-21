@@ -118,7 +118,7 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
 
     // sanitize the canonical name *without* extension to catch cases like
     // "Foo....mp3" which should become "Foo.mp3"
-    let (extension, _): (String, i32) = util::get_extension(&old_path);
+    let (extension, _): (String, usize) = util::get_extension(&old_path);
     let mut short_name_stem = util::get_name_stem(to_name, &extension); // both parameters use lowercase for the extension
     short_name_stem = util::sanitize_file_or_directory_name(&short_name_stem);
 

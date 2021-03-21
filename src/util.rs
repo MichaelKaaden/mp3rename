@@ -36,6 +36,7 @@ pub fn is_music_file(entry: &fs::DirEntry) -> bool {
     }
 }
 
+/// Checks if a name's extension is in a list of music file extensions
 pub fn is_music_filename(file_name: &str) -> bool {
     let music_extensions = vec![".mp3", ".flac", ".m4a", ".m4b", ".m4p", ".m4v"];
     let file_name = file_name.to_lowercase();
@@ -82,31 +83,29 @@ pub fn sanitize_file_or_directory_name(filename: &str) -> String {
     name.trim().to_string()
 }
 
+/// Shortens a file name so that it (together with the extension) fits in a given length
 pub fn shorten_names(new_path: &PathBuf, new_name: &str, config: &Config) -> String {
-    let (extension, extension_len): (String, i32) = get_extension(new_path);
-    let short_name_stem = get_name_stem(new_name, &extension);
+    let (extension, extension_len): (String, usize) = get_extension(new_path);
+    let stem = get_name_stem(new_name, &extension);
 
     let len = cmp::min(
-        cmp::min(
-            cmp::max((config.name_length as i32) - extension_len, 0) as u32, // get a positive number
-            config.name_length,
-        ) as usize,
-        short_name_stem.len(),
+        cmp::max((config.name_length as i32) - (extension_len as i32), 0) as usize, // get a positive number
+        stem.len(),
     );
 
     // trim to not have a blank before the extension
-    format!("{}{}", &short_name_stem[..len].trim(), extension)
+    format!("{}{}", &stem[..len].trim(), extension)
 }
 
 /// Returns the path's extension with leading dot (or the empty string)
-pub fn get_extension(path: &PathBuf) -> (String, i32) {
+pub fn get_extension(path: &PathBuf) -> (String, usize) {
     if let Some(ext_without_dot) = path.extension() {
         let ext = format!(
             ".{}",
             ext_without_dot.to_string_lossy().to_string().to_lowercase()
         );
         if is_music_filename(&ext) {
-            let len: i32 = ext.len() as i32;
+            let len = ext.len();
             return (ext, len);
         }
     }
@@ -221,17 +220,44 @@ mod tests {
                 &PathBuf::from("/foo/bar.mp3"),
                 "foo bar.mp3",
                 &Config {
-                    dry_run: false,
                     name_length: 9,
-                    remove_artist: false,
-                    remove_ordinary_files: false,
-                    rename_directory: false,
-                    shorten_names: false,
-                    start_dir: Default::default(),
-                    verbose: false,
+                    ..Config::default()
                 },
             ),
             "foo b.mp3"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
+                &Config {
+                    name_length: 1,
+                    ..Config::default()
+                },
+            ),
+            ".mp3"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
+                &Config {
+                    name_length: 4,
+                    ..Config::default()
+                },
+            ),
+            ".mp3"
+        );
+        assert_eq!(
+            shorten_names(
+                &PathBuf::from("/foo/bar.mp3"),
+                "foo bar.mp3",
+                &Config {
+                    name_length: 5,
+                    ..Config::default()
+                },
+            ),
+            "f.mp3"
         );
         assert_eq!(
             shorten_names(&PathBuf::from("/foo/bar.mp3"), "foo bar.blah.mp3", &config),
