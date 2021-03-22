@@ -1,5 +1,11 @@
 # mp3rename
 
+[![GitHub last commit](https://img.shields.io/github/last-commit/MichaelKaaden/rust_mp3rename.svg)](https://github.com/MichaelKaaden/rust_mp3rename/commits/master)
+[![GitHub tag](https://img.shields.io/github/tag/MichaelKaaden/rust_mp3rename.svg)](https://github.com/MichaelKaaden/rust_mp3rename/releases)
+[![Build Status](https://travis-ci.com/MichaelKaaden/rust_mp3rename.svg?branch=master)](https://travis-ci.com/MichaelKaaden/rust_mp3rename)
+[![GitHub issues](https://img.shields.io/github/issues/MichaelKaaden/rust_mp3rename.svg)](https://github.com/MichaelKaaden/rust_mp3rename/issues)
+[![license](https://img.shields.io/github/license/MichaelKaaden/redux-server.svg)](https://github.com/MichaelKaaden/redux-server)
+
 This command line utility has only one purpose: It traverses a directory tree and renames all music files it discovers
 and, optionally, the directories containing them according to the tags in the music files.
 
