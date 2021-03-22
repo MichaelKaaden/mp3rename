@@ -19,7 +19,10 @@ omit the files.
 
 ## Installation
 
-To install this as a binary, please use `cargo install --path .` in this project's root directory.
+Download one of the Linux, macOS, or Windows binaries from
+the [releases](https://github.com/MichaelKaaden/rust_mp3rename/releases) page.
+
+To build this crate from source and install it, please use `cargo install --path .` in this project's root directory.
 
 ## Running the CLI Tool
 
