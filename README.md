@@ -32,6 +32,16 @@ To build this crate from source and install it, please use `cargo install --path
 
 ## Running the CLI Tool
 
+Start a dry run on Linux and macOS is as simple as
+
+`$ mp3rename -adrn <my music dir>`
+
+To redirect output as well as errors to some files you'd inspect later, you'd use
+
+`$ mp3rename -adrn <my music dir> > output 2> errors`
+
+### Full usage message
+
 ```text
 USAGE:
     mp3rename [FLAGS] [OPTIONS] <START_DIR>
@@ -50,14 +60,19 @@ OPTIONS:
 
 ARGS:
     <START_DIR>    the directory to start from
-
 ```
 
 ## Result
 
 The resulting file name will have the form
+
 `<Disc Number><Track Number> <Artist> - <Track Title>.<extension>`.
 
-Optionally, the directory containing the music files will be renamed to the album title (if the same for all music files
-within this directory).
+When using the `--artist` flag and the "Artist" tag is the same for the whole directory, the file name will be shortened
+to
+
+`<Disc Number><Track Number> <Track Title>.<extension>`.
+
+Optionally, the directory containing the music files will be renamed to the album title (if it is the same for all music
+files within this directory).
 
