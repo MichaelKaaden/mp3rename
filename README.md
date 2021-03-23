@@ -32,11 +32,11 @@ To build this crate from source and install it, please use `cargo install --path
 
 ## Running the CLI Tool
 
-Start a dry run on Linux and macOS is as simple as
+Doing a dry run on Linux and macOS is as simple as
 
 `$ mp3rename -adrn <my music dir>`
 
-To redirect output as well as errors to some files you'd inspect later, you'd use
+To redirect output as well as error messages to some files you'd like to inspect later, you'd use
 
 `$ mp3rename -adrn <my music dir> > output 2> errors`
 
