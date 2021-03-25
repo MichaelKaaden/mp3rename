@@ -60,9 +60,19 @@ fn handle_directory(
         println!("Same artist: {}", same_artist);
     }
 
+    let number_of_digits_for_disc_number = match music_file::largest_disc_number(&music_files) {
+        None => 0,
+        Some(number) => number.to_string().len(),
+    };
+
     // rename music files
     for music_file in &music_files {
-        match music_file.canonical_name(config, same_artist, music_files.len()) {
+        match music_file.canonical_name(
+            config,
+            same_artist,
+            number_of_digits_for_disc_number,
+            music_files.len(),
+        ) {
             Some(canonical_name) => {
                 if config.verbose {
                     println!("Canonical name: {}", canonical_name);

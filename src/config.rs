@@ -39,7 +39,7 @@ impl Config {
 optionally, the directories containing them according to the
 tags in the music files.
 The resulting file name will have the form
-<Disc Number><Track Number> <Artist> - <Track Title>.<extension>
+[<Disc Number> - ]<Track Number> [<Artist> - ]<Track Title>.<extension>
 (with extension in <mp3|flac|m4a|m4b|m4p|m4v>).",
             )
             .arg(

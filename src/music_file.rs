@@ -25,12 +25,17 @@ impl MusicFile {
         self: &MusicFile,
         config: &Config,
         is_same_artist_for_whole_album: bool,
+        number_of_digits_for_disc_number: usize,
         number_of_music_files_in_this_directory: usize,
     ) -> Option<String> {
         if let Some(metadata) = &self.music_metadata {
             let disk_number = match metadata.disk_number {
                 None => String::new(),
-                Some(num) => format!("{}", num),
+                Some(num) => format!(
+                    "{:0width$} - ",
+                    num,
+                    width = number_of_digits_for_disc_number
+                ),
             };
 
             // number of digits to zero-pad the track number
@@ -118,6 +123,26 @@ pub fn same_album_title(music_files: &[MusicFile]) -> Option<&String> {
             }
         }
         return Some(first_album);
+    }
+
+    None
+}
+
+pub fn largest_disc_number(music_files: &[MusicFile]) -> Option<u16> {
+    let mut largest: u16 = 0;
+
+    for music_file in music_files {
+        if let Some(meta_data) = &music_file.music_metadata {
+            if let Some(disc_number) = meta_data.disk_number {
+                if disc_number > largest {
+                    largest = disc_number;
+                }
+            }
+        }
+    }
+
+    if largest > 0 {
+        return Some(largest);
     }
 
     None
