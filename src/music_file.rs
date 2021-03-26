@@ -147,3 +147,588 @@ pub fn largest_disc_number(music_files: &[MusicFile]) -> Option<u16> {
 
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const DEFAULT_ALBUM: &str = "The Foos are Back";
+    const DEFAULT_ARTIST: &str = "The Foos";
+    const DEFAULT_TITLE: &str = "Foo de Foo";
+
+    fn get_dir_entry() -> fs::DirEntry {
+        let mut readdir = fs::read_dir("testfiles").unwrap();
+        readdir.next().unwrap().unwrap()
+    }
+
+    fn get_music_metadata() -> MusicMetadata {
+        MusicMetadata {
+            album: DEFAULT_ALBUM.to_string(),
+            artist: DEFAULT_ARTIST.to_string(),
+            disk_number: None,
+            title: DEFAULT_TITLE.to_string(),
+            track_number: 1,
+        }
+    }
+
+    #[test]
+    fn test_canonical_name_for_default_config() {
+        let config = Config::default();
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let same_artist = false;
+
+        // one digit
+        let number_of_digits_for_disc_number = 0;
+        let number_of_music_files_in_this_directory = 1;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("1 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 9,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("9 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        // two digits
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let number_of_music_files_in_this_directory = 10;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("01 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 9,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("09 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 10,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("10 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        // three digits
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let number_of_music_files_in_this_directory = 100;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("001 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 10,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("010 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 99,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("099 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 100,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("100 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        // four digits
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let number_of_music_files_in_this_directory = 1000;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0001 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 10,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0010 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 99,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0099 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 100,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0100 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 999,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory,
+            ),
+            Some(format!("0999 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 1000,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("1000 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+    }
+
+    #[test]
+    fn test_canonical_name_for_remove_artist() {
+        let config = Config {
+            remove_artist: true,
+            ..Config::default()
+        };
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let same_artist = true;
+
+        // one digit
+        let number_of_digits_for_disc_number = 0;
+        let number_of_music_files_in_this_directory = 1;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("1 {}.mp3", DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 9,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("9 {}.mp3", DEFAULT_TITLE))
+        );
+
+        // two digits
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let number_of_music_files_in_this_directory = 10;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("01 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 9,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("09 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 10,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("10 {}.mp3", DEFAULT_TITLE))
+        );
+
+        // three digits
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let number_of_music_files_in_this_directory = 100;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("001 {}.mp3", DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 10,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("010 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 99,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("099 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 100,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("100 {}.mp3", DEFAULT_TITLE))
+        );
+
+        // four digits
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+        let number_of_music_files_in_this_directory = 1000;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0001 {}.mp3", DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 10,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0010 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 99,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0099 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 100,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("0100 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 999,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory,
+            ),
+            Some(format!("0999 {}.mp3", DEFAULT_TITLE))
+        );
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                track_number: 1000,
+                ..get_music_metadata()
+            }),
+        };
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("1000 {}.mp3", DEFAULT_TITLE))
+        );
+    }
+
+    #[test]
+    fn test_canonical_name_with_disc_numbers() {
+        let config = Config::default();
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                disk_number: Some(1),
+                ..get_music_metadata()
+            }),
+        };
+        let same_artist = false;
+
+        let number_of_digits_for_disc_number = 1;
+        let number_of_music_files_in_this_directory = 1;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("1 - 1 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(MusicMetadata {
+                disk_number: Some(1),
+                ..get_music_metadata()
+            }),
+        };
+        let number_of_digits_for_disc_number = 2;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!("01 - 1 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
+        );
+
+        let number_of_digits_for_disc_number = 3;
+        let number_of_music_files_in_this_directory = 100;
+        assert_eq!(
+            music_file.canonical_name(
+                &config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                number_of_music_files_in_this_directory
+            ),
+            Some(format!(
+                "001 - 001 {} - {}.mp3",
+                DEFAULT_ARTIST, DEFAULT_TITLE
+            ))
+        );
+    }
+}
