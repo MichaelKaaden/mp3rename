@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{cmp, fs};
 
 use regex::Regex;
@@ -85,7 +85,7 @@ pub fn sanitize_file_or_directory_name(filename: &str) -> String {
 
 /// Shortens a file name so that it (together with the extension) fits in a given length
 /// Combines the path's extension with the stem from the name.
-pub fn shorten_names(path: &PathBuf, name: &str, config: &Config) -> String {
+pub fn shorten_names(path: &Path, name: &str, config: &Config) -> String {
     let (extension, extension_len): (String, usize) = get_extension(path);
     let stem = get_name_stem(name, &extension);
 
@@ -99,7 +99,7 @@ pub fn shorten_names(path: &PathBuf, name: &str, config: &Config) -> String {
 }
 
 /// Returns the path's extension with leading dot (or the empty string)
-pub fn get_extension(path: &PathBuf) -> (String, usize) {
+pub fn get_extension(path: &Path) -> (String, usize) {
     if let Some(ext_without_dot) = path.extension() {
         let ext = format!(
             ".{}",
