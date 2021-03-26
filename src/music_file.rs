@@ -26,7 +26,7 @@ impl MusicFile {
         config: &Config,
         is_same_artist_for_whole_album: bool,
         number_of_digits_for_disc_number: usize,
-        number_of_music_files_in_this_directory: usize,
+        number_of_music_files_in_this_disk: usize,
     ) -> Option<String> {
         if let Some(metadata) = &self.music_metadata {
             let disk_number = match metadata.disk_number {
@@ -39,7 +39,7 @@ impl MusicFile {
             };
 
             // number of digits to zero-pad the track number
-            let num_digits = number_of_music_files_in_this_directory.to_string().len();
+            let num_digits = number_of_music_files_in_this_disk.to_string().len();
             let track_number = format!("{:0width$}", metadata.track_number, width = num_digits);
 
             let artist = if config.remove_artist && is_same_artist_for_whole_album {
@@ -108,7 +108,7 @@ pub fn same_artists(music_files: &[MusicFile]) -> bool {
 }
 
 // Which album name does the whole directory have for all music files?
-pub fn same_album_title(music_files: &[MusicFile]) -> Option<&String> {
+pub fn same_album_title(music_files: &[MusicFile]) -> Option<String> {
     let albums: Vec<&String> = music_files
         .iter()
         .filter_map(|m| m.music_metadata.as_ref())
@@ -122,27 +122,7 @@ pub fn same_album_title(music_files: &[MusicFile]) -> Option<&String> {
                 return None;
             }
         }
-        return Some(first_album);
-    }
-
-    None
-}
-
-pub fn largest_disc_number(music_files: &[MusicFile]) -> Option<u16> {
-    let mut largest: u16 = 0;
-
-    for music_file in music_files {
-        if let Some(meta_data) = &music_file.music_metadata {
-            if let Some(disc_number) = meta_data.disk_number {
-                if disc_number > largest {
-                    largest = disc_number;
-                }
-            }
-        }
-    }
-
-    if largest > 0 {
-        return Some(largest);
+        return Some(String::from(first_album));
     }
 
     None
