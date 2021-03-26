@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs;
 use std::path::PathBuf;
@@ -31,6 +32,7 @@ pub fn rename_music_files(config: &Config) {
                         .map(MusicFile::new)
                         .filter(|music_file| music_file.music_metadata.is_some())
                         .collect();
+                    // by now we can be sure all music_files *have* metadata, else we would have filtered them out above
                     music_files.sort_by(|left, right| MusicFile::sort_func(left, right));
 
                     let ordinary_files: Vec<OrdinaryFile> =
@@ -59,17 +61,40 @@ fn handle_directory(
     if config.verbose {
         println!("Same artist: {}", same_artist);
     }
+    let same_album_title = music_file::same_album_title(&music_files);
+
+    let mut music_files_by_disk_number_map: HashMap<Option<u16>, Vec<MusicFile>> = HashMap::new();
+    for music_file in music_files {
+        if let Some(music_metadata) = &music_file.music_metadata {
+            let vec = music_files_by_disk_number_map
+                .entry(music_metadata.disk_number)
+                .or_insert(vec![]);
+            vec.push(music_file);
+        }
+    }
 
     // rename music files
-    for music_file in &music_files {
-        match music_file.canonical_name(config, same_artist, music_files.len()) {
-            Some(canonical_name) => {
-                if config.verbose {
-                    println!("Canonical name: {}", canonical_name);
+    for (disk_number, music_files_by_disk_number) in &music_files_by_disk_number_map {
+        let number_of_digits_for_disc_number = match disk_number {
+            None => 0,
+            Some(number) => number.to_string().len(),
+        };
+
+        for music_file in music_files_by_disk_number {
+            match music_file.canonical_name(
+                config,
+                same_artist,
+                number_of_digits_for_disc_number,
+                music_files_by_disk_number.len(),
+            ) {
+                Some(canonical_name) => {
+                    if config.verbose {
+                        println!("Canonical name: {}", canonical_name);
+                    }
+                    rename_file_or_directory(music_file.dir_entry.path(), config, &canonical_name)
                 }
-                rename_file_or_directory(music_file.dir_entry.path(), config, &canonical_name)
+                None => eprintln!("Couldn't retrieve canonical name"),
             }
-            None => eprintln!("Couldn't retrieve canonical name"),
         }
     }
 
@@ -90,13 +115,12 @@ fn handle_directory(
     }
 
     // rename the directory
-    let same_album_title = music_file::same_album_title(&music_files);
     if let Some(album_title) = same_album_title {
         if config.verbose {
             println!("Same album title: {}", album_title);
         }
         if config.rename_directory {
-            rename_file_or_directory(dir_entry.path().to_path_buf(), config, album_title)
+            rename_file_or_directory(dir_entry.path().to_path_buf(), config, &album_title)
         }
     } else if config.verbose {
         println!("Multiple album names.")
