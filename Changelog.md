@@ -1,4 +1,18 @@
 
+v1.0.7 / 2021-03-27
+==================
+
+  * Produce stable output by sorting the keys from the disk hash map
+  * Refactor comparing disk_numbers into a function of its own
+  * [chore] Add a Changelog.md file
+  * Fix the last Clippy warning regarding Entry.on_insert()
+  * Calculate the disk number's zero padding correctly
+  * Handle music files per disk instead of per directory
+  * Fix a Clippy warning
+  * Unit-test MusicFile's canonical_name()
+  * Use zero-padding for the disc number and separate it with blanks from the track number
+  * [chore] Bump version for the next development cycle
+
 v1.0.6 / 2021-03-24
 ===================
 
