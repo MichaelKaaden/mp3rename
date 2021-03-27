@@ -1,11 +1,11 @@
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
 use std::fs;
 
 use crate::config::Config;
 use crate::music_metadata::MusicMetadata;
-use std::collections::HashMap;
 
 pub struct MusicFile {
     pub dir_entry: fs::DirEntry,
@@ -67,6 +67,10 @@ impl MusicFile {
 
     pub fn sort_func(left: &MusicFile, right: &MusicFile) -> Ordering {
         MusicMetadata::sort_func(&left.music_metadata, &right.music_metadata)
+    }
+
+    pub fn sort_by_disk_number(left: &&Option<u16>, right: &&Option<u16>) -> Ordering {
+        MusicMetadata::sort_by_disk_number_func(*left, *right)
     }
 }
 
