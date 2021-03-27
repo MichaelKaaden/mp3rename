@@ -70,7 +70,7 @@ fn handle_directory(
         if let Some(music_metadata) = &music_file.music_metadata {
             let vec = music_files_by_disk_number_map
                 .entry(music_metadata.disk_number)
-                .or_insert(vec![]);
+                .or_insert_with(Vec::new);
             vec.push(music_file);
         }
     }
