@@ -63,6 +63,8 @@ fn handle_directory(
     }
     let same_album_title = music_file::same_album_title(&music_files);
 
+    // partition music files by an Option of their disk number to be able to
+    // zero-pad the track numbers individually per *disk* instead of per *directory*
     let mut music_files_by_disk_number_map: HashMap<Option<u16>, Vec<MusicFile>> = HashMap::new();
     for music_file in music_files {
         if let Some(music_metadata) = &music_file.music_metadata {
@@ -73,13 +75,14 @@ fn handle_directory(
         }
     }
 
-    // rename music files
-    for (disk_number, music_files_by_disk_number) in &music_files_by_disk_number_map {
-        let number_of_digits_for_disc_number = match disk_number {
+    let number_of_digits_for_disc_number =
+        match music_file::largest_disc_number(&music_files_by_disk_number_map) {
             None => 0,
             Some(number) => number.to_string().len(),
         };
 
+    // rename music files
+    for music_files_by_disk_number in music_files_by_disk_number_map.values() {
         for music_file in music_files_by_disk_number {
             match music_file.canonical_name(
                 config,

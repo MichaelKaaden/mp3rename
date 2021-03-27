@@ -5,6 +5,7 @@ use std::fs;
 
 use crate::config::Config;
 use crate::music_metadata::MusicMetadata;
+use std::collections::HashMap;
 
 pub struct MusicFile {
     pub dir_entry: fs::DirEntry,
@@ -123,6 +124,24 @@ pub fn same_album_title(music_files: &[MusicFile]) -> Option<String> {
             }
         }
         return Some(String::from(first_album));
+    }
+
+    None
+}
+
+pub fn largest_disc_number(music_files: &HashMap<Option<u16>, Vec<MusicFile>>) -> Option<u16> {
+    let mut largest: u16 = 0;
+
+    for disk_number in music_files.keys() {
+        if let Some(disk_number) = disk_number {
+            if *disk_number > largest {
+                largest = *disk_number;
+            }
+        }
+    }
+
+    if largest > 0 {
+        return Some(largest);
     }
 
     None
