@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs;
 use std::path::PathBuf;
@@ -31,7 +32,8 @@ pub fn rename_music_files(config: &Config) {
                         .map(MusicFile::new)
                         .filter(|music_file| music_file.music_metadata.is_some())
                         .collect();
-                    music_files.sort_by(|left, right| MusicFile::sort_func(left, right));
+                    // by now we can be sure all music_files *have* metadata, else we would have filtered them out above
+                    music_files.sort_by(MusicFile::sort_func);
 
                     let ordinary_files: Vec<OrdinaryFile> =
                         others.into_iter().map(OrdinaryFile::new).collect();
@@ -59,17 +61,56 @@ fn handle_directory(
     if config.verbose {
         println!("Same artist: {}", same_artist);
     }
+    let same_album_title = music_file::same_album_title(&music_files);
+
+    // partition music files by an Option of their disk number to be able to
+    // zero-pad the track numbers individually per *disk* instead of per *directory*
+    let mut music_files_by_disk_number_map: HashMap<Option<u16>, Vec<MusicFile>> = HashMap::new();
+    for music_file in music_files {
+        if let Some(music_metadata) = &music_file.music_metadata {
+            let vec = music_files_by_disk_number_map
+                .entry(music_metadata.disk_number)
+                .or_insert_with(Vec::new);
+            vec.push(music_file);
+        }
+    }
+
+    let number_of_digits_for_disc_number =
+        match music_file::largest_disc_number(&music_files_by_disk_number_map) {
+            None => 0,
+            Some(number) => number.to_string().len(),
+        };
+
+    // Getting keys out of HashMaps is unstable. To always produce the same output,
+    // we need to add stability by sorting the keys and producing the output according
+    // to this order.
+    let mut sorted_keys: Vec<&Option<u16>> =
+        music_files_by_disk_number_map.keys().into_iter().collect();
+    sorted_keys.sort_by(MusicFile::sort_by_disk_number);
 
     // rename music files
-    for music_file in &music_files {
-        match music_file.canonical_name(config, same_artist, music_files.len()) {
-            Some(canonical_name) => {
-                if config.verbose {
-                    println!("Canonical name: {}", canonical_name);
+    for disk_number in sorted_keys {
+        if let Some(music_files_by_disk_number) = music_files_by_disk_number_map.get(disk_number) {
+            for music_file in music_files_by_disk_number {
+                match music_file.canonical_name(
+                    config,
+                    same_artist,
+                    number_of_digits_for_disc_number,
+                    music_files_by_disk_number.len(),
+                ) {
+                    Some(canonical_name) => {
+                        if config.verbose {
+                            println!("Canonical name: {}", canonical_name);
+                        }
+                        rename_file_or_directory(
+                            music_file.dir_entry.path(),
+                            config,
+                            &canonical_name,
+                        )
+                    }
+                    None => eprintln!("Couldn't retrieve canonical name"),
                 }
-                rename_file_or_directory(music_file.dir_entry.path(), config, &canonical_name)
             }
-            None => eprintln!("Couldn't retrieve canonical name"),
         }
     }
 
@@ -90,13 +131,12 @@ fn handle_directory(
     }
 
     // rename the directory
-    let same_album_title = music_file::same_album_title(&music_files);
     if let Some(album_title) = same_album_title {
         if config.verbose {
             println!("Same album title: {}", album_title);
         }
         if config.rename_directory {
-            rename_file_or_directory(dir_entry.path().to_path_buf(), config, album_title)
+            rename_file_or_directory(dir_entry.path().to_path_buf(), config, &album_title)
         }
     } else if config.verbose {
         println!("Multiple album names.")

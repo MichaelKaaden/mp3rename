@@ -66,13 +66,14 @@ ARGS:
 
 The resulting file name will have the form
 
-`<Disc Number><Track Number> <Artist> - <Track Title>.<extension>`.
+`<Disc Number> - <Track Number> <Artist> - <Track Title>.<extension>`.
 
 When using the `--artist` flag and the "Artist" tag is the same for the whole directory, the file name will be shortened
 to
 
-`<Disc Number><Track Number> <Track Title>.<extension>`.
+`<Disc Number> - <Track Number> <Track Title>.<extension>`.
 
 Optionally, the directory containing the music files will be renamed to the album title (if it is the same for all music
 files within this directory).
 
+If no disc numbers are given, the disc number part is left out.

@@ -48,22 +48,34 @@ impl MusicMetadata {
         let left = a.as_ref().unwrap_or_else(|| panic!("No tags defined"));
         let right = b.as_ref().unwrap_or_else(|| panic!("No tags defined"));
 
-        if left.disk_number.is_some() && right.disk_number.is_none() {
-            return Ordering::Greater;
-        } else if left.disk_number.is_none() && right.disk_number.is_some() {
-            return Ordering::Less;
-        }
-
-        if let Some(left_disk_number) = left.disk_number {
-            if let Some(right_disk_number) = right.disk_number {
-                let disk_number_comparison = left_disk_number.cmp(&right_disk_number);
-                if disk_number_comparison != Ordering::Equal {
-                    return disk_number_comparison;
-                }
-            }
+        let disk_number_comparison =
+            MusicMetadata::sort_by_disk_number_func(&left.disk_number, &right.disk_number);
+        if disk_number_comparison != Ordering::Equal {
+            return disk_number_comparison;
         }
 
         left.track_number.cmp(&right.track_number)
+    }
+
+    pub fn sort_by_disk_number_func(left: &Option<u16>, right: &Option<u16>) -> Ordering {
+        let left = *left;
+        let right = *right;
+
+        if left.is_none() && right.is_none() {
+            return Ordering::Equal;
+        } else if left.is_some() && right.is_none() {
+            return Ordering::Greater;
+        } else if left.is_none() && right.is_some() {
+            return Ordering::Less;
+        }
+
+        if let Some(left_disk_number) = left {
+            if let Some(right_disk_number) = right {
+                return left_disk_number.cmp(&right_disk_number);
+            }
+        }
+
+        Ordering::Equal
     }
 }
 
