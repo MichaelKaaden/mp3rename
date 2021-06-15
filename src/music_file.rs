@@ -43,11 +43,12 @@ impl MusicFile {
             let num_digits = number_of_music_files_in_this_disk.to_string().len();
             let track_number = format!("{:0width$}", metadata.track_number, width = num_digits);
 
-            let artist = if config.remove_artist && is_same_artist_for_whole_album {
-                String::new()
-            } else {
-                format!(" {} -", &metadata.artist)
-            };
+            let artist =
+                if (config.remove_artist && is_same_artist_for_whole_album) || config.omit_artist {
+                    String::new()
+                } else {
+                    format!(" {} -", &metadata.artist)
+                };
 
             let extension = match self.dir_entry.path().extension() {
                 None => String::new(),
@@ -674,6 +675,32 @@ mod tests {
                 number_of_music_files_in_this_directory
             ),
             Some(format!("1000 {}.mp3", DEFAULT_TITLE))
+        );
+    }
+
+    #[test]
+    fn test_canonical_name_for_omit_artist() {
+        let config = Config {
+            omit_artist: true,
+            ..Config::default()
+        };
+        let music_file = MusicFile {
+            dir_entry: get_dir_entry(),
+            music_metadata: Some(get_music_metadata()),
+        };
+
+        assert_eq!(
+            music_file.canonical_name(&config, false, 0, 1),
+            Some(format!("1 {}.mp3", DEFAULT_TITLE))
+        );
+
+        let config = Config {
+            omit_artist: false,
+            ..Config::default()
+        };
+        assert_eq!(
+            music_file.canonical_name(&config, false, 0, 1),
+            Some(format!("1 {} - {}.mp3", DEFAULT_ARTIST, DEFAULT_TITLE))
         );
     }
 

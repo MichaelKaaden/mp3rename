@@ -47,19 +47,20 @@ USAGE:
     mp3rename [FLAGS] [OPTIONS] <START_DIR>
 
 FLAGS:
-    -a, --artist       Removes the artist from the filename if it is the same for all files in a directory
-    -d, --directory    Renames directories according to the album tag
-    -n, --dry-run      Uses dry-run mode
-    -h, --help         Prints help information
-    -r, --remove       Removes non-music files
-    -V, --version      Prints version information
-    -v, --verbose      Be verbose
+    -a, --artist         Removes the artist from the filename if it is the same for all files in a directory
+    -d, --directory      Renames directories according to the album tag
+    -n, --dry-run        Uses dry-run mode
+    -h, --help           Prints help information
+    -o, --omit-artist    Omit artist
+    -r, --remove         Removes non-music files
+    -V, --version        Prints version information
+    -v, --verbose        Be verbose
 
 OPTIONS:
     -l, --limit-length <LENGTH>    Limits the file and directory names to <LENGTH> characters
 
 ARGS:
-    <START_DIR>    the directory to start from
+    <START_DIR>    The directory to start from
 ```
 
 ## Result
