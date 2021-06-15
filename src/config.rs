@@ -11,6 +11,7 @@ use clap::{crate_authors, crate_version, App, Arg};
 pub struct Config {
     pub dry_run: bool,
     pub name_length: u32,
+    pub omit_artist: bool,
     pub remove_artist: bool,
     pub remove_ordinary_files: bool,
     pub rename_directory: bool,
@@ -26,6 +27,7 @@ impl Config {
         const DRY_RUN: &str = "dry-run";
         const LENGTH: &str = "limit-length";
         const LENGTH_VALUE: &str = "LENGTH";
+        const OMIT_ARTIST: &str = "omit-artist";
         const REMOVE: &str = "remove";
         const START_DIR: &str = "START_DIR";
         const VERBOSE: &str = "verbose";
@@ -69,6 +71,12 @@ The resulting file name will have the form
                     .help("Limits the file and directory names to <LENGTH> characters"),
             )
             .arg(
+                Arg::with_name(OMIT_ARTIST)
+                    .short("o")
+                    .long(OMIT_ARTIST)
+                    .help("Omit artist"),
+            )
+            .arg(
                 Arg::with_name(REMOVE)
                     .short("r")
                     .long(REMOVE)
@@ -77,7 +85,7 @@ The resulting file name will have the form
             .arg(
                 // this is a positional argument
                 Arg::with_name(START_DIR)
-                    .help("the directory to start from")
+                    .help("The directory to start from")
                     .index(1)
                     .required(true),
             )
@@ -114,6 +122,7 @@ The resulting file name will have the form
         Config {
             dry_run: matches.is_present(DRY_RUN),
             name_length,
+            omit_artist: matches.is_present(OMIT_ARTIST),
             remove_artist: matches.is_present(ARTIST),
             remove_ordinary_files: matches.is_present(REMOVE),
             rename_directory: matches.is_present(DIRECTORY),
@@ -129,6 +138,7 @@ impl fmt::Display for Config {
         writeln!(f, "Dry run:                  {:?}", self.dry_run)?;
         writeln!(f, "Using path                {:?}", self.start_dir)?;
         writeln!(f, "Name length limit:        {:?}", self.name_length)?;
+        writeln!(f, "Omit artist:              {:?}", self.omit_artist)?;
         writeln!(f, "Remove artist:            {:?}", self.remove_artist)?;
         writeln!(
             f,
