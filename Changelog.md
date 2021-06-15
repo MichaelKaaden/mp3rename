@@ -1,4 +1,14 @@
 
+v1.0.8 / 2021-06-15
+==================
+
+  * Add the option to completely omit the artist in the filename
+  * [chore] Update libc and syn
+  * [chore] Update dependencies
+  * [chore] Add a minimal Dockerfile for building and running the binary
+  * [chore] Update the "syn" crate
+  * [chore] Bump version for the next development cycle
+
 v1.0.7 / 2021-03-27
 ==================
 
