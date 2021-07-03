@@ -1,4 +1,11 @@
 
+1.0.9 / 2021-07-03
+==================
+
+  * [chore] Bump version for release v1.0.9
+  * [chore] Update crates
+  * [chore] Bump version for the next development cycle
+
 v1.0.8 / 2021-06-15
 ==================
 
