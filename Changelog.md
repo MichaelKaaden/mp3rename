@@ -1,5 +1,14 @@
 
-1.0.9 / 2021-07-03
+v1.0.10 2021-12-15
+==================
+
+  * [chore] Bump version for release v1.0.10
+  * [chore] Update crates
+  * [chore] Update to Rust 2021
+  * [chore] Update the API key
+  * [chore] Bump version for the next development cycle
+
+v1.0.9 / 2021-07-03
 ==================
 
   * [chore] Bump version for release v1.0.9
