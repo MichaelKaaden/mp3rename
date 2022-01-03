@@ -1,4 +1,13 @@
 
+v1.0.11 / 2022-01-03
+==================
+
+  * [chore] Bump version for release v1.0.11
+  * [chore] Update used crates
+  * [chore] Update the API key
+  * [chore] Bump version for the next development cycle
+  * Merge tag 'v1.0.10' into develop
+
 v1.0.10 2021-12-15
 ==================
 

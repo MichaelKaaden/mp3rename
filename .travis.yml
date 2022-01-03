@@ -13,67 +13,56 @@ env:
   global:
     # TODO Update this to match the name of your project.
     - CRATE_NAME=mp3rename
-
+    - secure: k6cai0izGgtwtGldDKrcH+bqiz4TgdMPcbZ6CGvnvXOQ6S3sNZy1QcfOvEkp+NDFaRPueeoomedK7IMucgMDWqfvz+x9xlJInNyRdMXZEXemn458/ebT5t0nFgiDWERUXZurKazQB4GL+s7ka9hMPfXA13avkD9my4EottGNC32TtEnEbZM9T8gmICoMqRKeyUVndnsJ/4e8sPHY3nrXsB5B3ct3YlQQgFLcRy4SGG4AHdlk9r0f7OMMJ6KiAZJxUpBQ4i9Z0Ym06CMIcuaFvW4gtICfFCElmg9lJIwpAiFsRsAhFmVIU7sDfCDFQ3ckr4xt6o1w+lBjbLKubUhouLxBejhNbFaR0DygRHNtgUQrz6JAHvKaOuekTavosqPjmDjJMjIlotLFakjVQJiLPf99AexDUWcGI7B+5CVCbdAj3FDocFW4LJgeYGtHFPH2G8V0ozV9R+v6Kj6NPTKs/TeEUyXNTGRqgI9LyCE1ZetmuRAe5W0YX5iVfe3MLOM5KDg1JJTpyVN8I6C7QzpTNyIwgWtDL/CYx+h/SgRRFskyYtU02mZdgefSh4gjfXaE0NkaIDTufPTCkp/g1hgmKr6ioE6jX3CITVZgDbuKUvacByxPidTXQ1OZB4Ap/AwzZdKvqYtfx4RnEDwO03jmCRo9xJwWPk4eRmaHvHZVT9k=
 matrix:
   # TODO These are all the build jobs. Adjust as necessary. Comment out what you
   # don't need
   include:
     # Linux
     - env: TARGET=x86_64-unknown-linux-gnu
-
-    # OSX
+      # OSX
     - env: TARGET=x86_64-apple-darwin
       os: osx
-
-    # Windows
+      # Windows
     - env: TARGET=x86_64-pc-windows-gnu
-
 before_install:
   - set -e
   - rustup self update
-
 install:
   - sh ci/install.sh
   - source ~/.cargo/env || true
-
 script:
   - bash ci/script.sh
-
 after_script: set +e
-
 before_deploy:
   - sh ci/before_deploy.sh
-
 deploy:
   # TODO update `api_key.secure`
   # - Create a `public_repo` GitHub token. Go to: https://github.com/settings/tokens/new
   # - Encrypt it: `travis encrypt 0123456789012345678901234567890123456789
   # - Paste the output down here
   api_key:
-    secure: "IaPnaDFEhCFjC/lB+qRnCcuwLsNbOHPfCUCTjchjwF1Kfy8xJjYjT8bgh/sce9Ya7EJC5U2d1DLY9Yejd+cjhzx7g5sBi8NxRj1nKaHkoIy0/SiUcEQDnLz32vYjcPomqpPLGFbGrs1VOdXiO51fKRk4r3lKyDDi5wrE4yPz2+wDIAJ8iP/8ZqWJPIVRdkGSi7xoLGnn0/bfIJn+4MZ4r0rWdLGS13HkMkdSHH1LpCjvj+1P0eDMqz5dY5r2VE+Rqh/51AvDPovROSZTAjV6MoPHjP3HeWkO8+17QqERzFmrm6MEdSyzASLKa/E9HMLVuwAEizmaLJo4Fm6V7VpDFsb5Fv+a3365GIzByXy+Kr/J6cgbh3vHKATxE0RfWqDzR8dPtX2iV8T/SxeUntlYFk5yYzQUtpyorF4kjSDxzO9ZYcYCGAc4A6FWq+7AFSWDat7bgYnQKKgCtOJzaYF9ojaosmk5Sgen16HnP4utUHDVJKxz1BXv2BwcUGku9u4rRT4RGnJV2ubDF4LZzkkSde1k35uoJwqYYZ3uzzBzJpnpNQ/0mXFgncEnbwbJVrmFv90+iKc+f2wb0eHatuLzMViJ0yiuwczJRDamFMOE+m531oyt1t5EnV2kDbjOPkBAMHiF9sKY/CYbB5eloH+LAMt7/obJcv919T8de3YJ+z0="
+    secure: IaPnaDFEhCFjC/lB+qRnCcuwLsNbOHPfCUCTjchjwF1Kfy8xJjYjT8bgh/sce9Ya7EJC5U2d1DLY9Yejd+cjhzx7g5sBi8NxRj1nKaHkoIy0/SiUcEQDnLz32vYjcPomqpPLGFbGrs1VOdXiO51fKRk4r3lKyDDi5wrE4yPz2+wDIAJ8iP/8ZqWJPIVRdkGSi7xoLGnn0/bfIJn+4MZ4r0rWdLGS13HkMkdSHH1LpCjvj+1P0eDMqz5dY5r2VE+Rqh/51AvDPovROSZTAjV6MoPHjP3HeWkO8+17QqERzFmrm6MEdSyzASLKa/E9HMLVuwAEizmaLJo4Fm6V7VpDFsb5Fv+a3365GIzByXy+Kr/J6cgbh3vHKATxE0RfWqDzR8dPtX2iV8T/SxeUntlYFk5yYzQUtpyorF4kjSDxzO9ZYcYCGAc4A6FWq+7AFSWDat7bgYnQKKgCtOJzaYF9ojaosmk5Sgen16HnP4utUHDVJKxz1BXv2BwcUGku9u4rRT4RGnJV2ubDF4LZzkkSde1k35uoJwqYYZ3uzzBzJpnpNQ/0mXFgncEnbwbJVrmFv90+iKc+f2wb0eHatuLzMViJ0yiuwczJRDamFMOE+m531oyt1t5EnV2kDbjOPkBAMHiF9sKY/CYbB5eloH+LAMt7/obJcv919T8de3YJ+z0=
   file_glob: true
-  file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
+  file: "$CRATE_NAME-$TRAVIS_TAG-$TARGET.*"
   on:
     # TODO Here you can pick which targets will generate binary releases
     # In this example, there are some targets that are tested using the stable
     # and nightly channels. This condition makes sure there is only one release
     # for such targets and that's generated using the stable channel
-    condition: $TRAVIS_RUST_VERSION = stable
+    condition: "$TRAVIS_RUST_VERSION = stable"
     tags: true
   provider: releases
   skip_cleanup: true
-
 cache: cargo
 before_cache:
   # Travis can't cache files that are not readable by "others"
   - chmod -R a+r $HOME/.cargo
-
 branches:
   only:
     # release tags
-    - /^v\d+\.\d+\.\d+.*$/
+    - "/^v\\d+\\.\\d+\\.\\d+.*$/"
     - master
-
 notifications:
   email:
     on_success: never
