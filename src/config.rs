@@ -100,7 +100,7 @@ The resulting file name will have the form
 
         // the directory is mandatory
         let start_dir = matches.value_of(START_DIR).unwrap();
-        let start_dir = match util::string_to_path(&start_dir) {
+        let start_dir = match util::string_to_path(start_dir) {
             Ok(path) => path,
             Err(_) => {
                 eprintln!("Couldn't find the path \"{}\"", start_dir);

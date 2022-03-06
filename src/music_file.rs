@@ -137,11 +137,9 @@ pub fn same_album_title(music_files: &[MusicFile]) -> Option<String> {
 pub fn largest_disc_number(music_files: &HashMap<Option<u16>, Vec<MusicFile>>) -> Option<u16> {
     let mut largest: u16 = 0;
 
-    for disk_number in music_files.keys() {
-        if let Some(disk_number) = disk_number {
-            if *disk_number > largest {
-                largest = *disk_number;
-            }
+    for disk_number in music_files.keys().flatten() {
+        if *disk_number > largest {
+            largest = *disk_number;
         }
     }
 
