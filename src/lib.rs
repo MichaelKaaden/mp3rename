@@ -14,7 +14,7 @@ mod ordinary_file;
 mod util;
 
 pub fn rename_music_files(config: &Config) {
-    let all_files_and_directories = util::get_list_of_dirs(&config);
+    let all_files_and_directories = util::get_list_of_dirs(config);
 
     // iterate over directories containing at least one music file
     for dir in all_files_and_directories {
@@ -23,7 +23,7 @@ pub fn rename_music_files(config: &Config) {
                 let (music, others): (Vec<fs::DirEntry>, Vec<fs::DirEntry>) = readdir
                     .filter(|dir_entry| dir_entry.as_ref().unwrap().path().is_file())
                     .map(|dir_entry| dir_entry.unwrap())
-                    .partition(|dir_entry| util::is_music_file(dir_entry));
+                    .partition(util::is_music_file);
 
                 // only use directories containing music files
                 if !music.is_empty() {

@@ -11,7 +11,7 @@ and, optionally, the directories containing them according to the tags in the mu
 
 Running `mp3rename -d "./Thimbleweed Park"` yielded the following result:
 
-![What this command line tool does](assets/screenshot.png)
+![What this command line tool does](screenshots/screenshot.png)
 
 If I had used `mp3rename -ad "./Thimbleweed Park"`, the artist would have been left out as it is the same for all music
 files in this directory.

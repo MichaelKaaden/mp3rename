@@ -50,19 +50,19 @@ pub fn is_music_filename(file_name: &str) -> bool {
 }
 
 pub fn sanitize_file_or_directory_name(filename: &str) -> String {
-    let mut name = filename.replace("$", "_");
+    let mut name = filename.replace('$', "_");
     name = name.replace("???", "Fragezeichen");
 
     // Windows doesn't like any of the following characters
-    name = name.replace("\\", "");
-    name = name.replace("/", " & ");
-    name = name.replace(":", " -");
-    name = name.replace("*", "_");
-    name = name.replace("?", "");
-    name = name.replace("\"", "");
-    name = name.replace("<", "");
-    name = name.replace(">", "");
-    name = name.replace("|", ", ");
+    name = name.replace('\\', "");
+    name = name.replace('/', " & ");
+    name = name.replace(':', " -");
+    name = name.replace('*', "_");
+    name = name.replace('?', "");
+    name = name.replace('\"', "");
+    name = name.replace('<', "");
+    name = name.replace('>', "");
+    name = name.replace('|', ", ");
 
     // now we added blanks, let's handle the ones in the beginning and at the end
     name = name.trim().to_string();
@@ -129,14 +129,14 @@ mod tests {
 
     #[test]
     fn test_is_music_filename() {
-        assert_eq!(is_music_filename("/tmp/music.mp3"), true);
-        assert_eq!(is_music_filename("/tmp/music.mp33"), false);
-        assert_eq!(is_music_filename("/tmp/music.Mp3"), true);
-        assert_eq!(is_music_filename("/tmp/music.FlAc"), true);
-        assert_eq!(is_music_filename("/tmp/music.m4a"), true);
-        assert_eq!(is_music_filename("/tmp/music.m4p"), true);
-        assert_eq!(is_music_filename("/tmp/music.m4v"), true);
-        assert_eq!(is_music_filename("/tmp/music.mp4"), false);
+        assert!(is_music_filename("/tmp/music.mp3"));
+        assert!(!is_music_filename("/tmp/music.mp33"));
+        assert!(is_music_filename("/tmp/music.Mp3"));
+        assert!(is_music_filename("/tmp/music.FlAc"));
+        assert!(is_music_filename("/tmp/music.m4a"));
+        assert!(is_music_filename("/tmp/music.m4p"));
+        assert!(is_music_filename("/tmp/music.m4v"));
+        assert!(!is_music_filename("/tmp/music.mp4"));
     }
 
     #[test]
