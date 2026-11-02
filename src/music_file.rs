@@ -47,7 +47,7 @@ impl MusicFile {
                 if (config.remove_artist && is_same_artist_for_whole_album) || config.omit_artist {
                     String::new()
                 } else {
-                    format!(" {} -", &metadata.artist)
+                    format!(" {} -", metadata.artist)
                 };
 
             let extension = match self.dir_entry.path().extension() {
@@ -71,7 +71,7 @@ impl MusicFile {
     }
 
     pub fn sort_by_disk_number(left: &&Option<u16>, right: &&Option<u16>) -> Ordering {
-        MusicMetadata::sort_by_disk_number_func(*left, *right)
+        MusicMetadata::sort_by_disk_number_func(left, right)
     }
 }
 

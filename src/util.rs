@@ -1,5 +1,5 @@
+use std::fs;
 use std::path::{Path, PathBuf};
-use std::{cmp, fs};
 
 use regex::Regex;
 use walkdir::WalkDir;
@@ -89,13 +89,12 @@ pub fn shorten_names(path: &Path, name: &str, config: &Config) -> String {
     let (extension, extension_len): (String, usize) = get_extension(path);
     let stem = get_name_stem(name, &extension);
 
-    let len = cmp::min(
-        cmp::max((config.name_length as i32) - (extension_len as i32), 0) as usize, // get a positive number
-        stem.len(),
-    );
+    // count characters, not bytes, to never cut a multi-byte character in half
+    let len = (config.name_length as usize).saturating_sub(extension_len);
+    let short_stem: String = stem.chars().take(len).collect();
 
     // trim to not have a blank before the extension
-    format!("{}{}", &stem[..len].trim(), extension)
+    format!("{}{}", short_stem.trim(), extension)
 }
 
 /// Returns the path's extension with leading dot (or the empty string)
@@ -115,7 +114,7 @@ pub fn get_extension(path: &Path) -> (String, usize) {
 
 /// Returns the file name's stem, i. e. the name without the extension given as second argument
 pub fn get_name_stem(name: &str, extension: &str) -> String {
-    name.replace(&extension, "")
+    name.strip_suffix(extension).unwrap_or(name).to_string()
 }
 
 /// Returns a path made of the given string slice
@@ -279,6 +278,24 @@ mod tests {
     }
 
     #[test]
+    fn test_shorten_names_counts_characters_not_bytes() {
+        let config = Config {
+            name_length: 6,
+            ..Config::default()
+        };
+
+        // cutting after two bytes would split the 'ù'
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar.mp3"), "Où est.mp3", &config),
+            "Où.mp3"
+        );
+        assert_eq!(
+            shorten_names(&PathBuf::from("/foo/bar.mp3"), "éééé.mp3", &config),
+            "éé.mp3"
+        );
+    }
+
+    #[test]
     fn test_get_extension() {
         assert_eq!(
             get_extension(&PathBuf::from("Foo Bar")),
@@ -303,5 +320,10 @@ mod tests {
         assert_eq!(get_name_stem("foo.mp3", ".mp3"), "foo");
         assert_eq!(get_name_stem("foo.mp3", "mp3"), "foo.");
         assert_eq!(get_name_stem("foo.mp3", ""), "foo.mp3");
+        assert_eq!(
+            get_name_stem("Remix.mp3 Edit.mp3", ".mp3"),
+            "Remix.mp3 Edit"
+        );
+        assert_eq!(get_name_stem("foo.mp3 bar", ".mp3"), "foo.mp3 bar");
     }
 }

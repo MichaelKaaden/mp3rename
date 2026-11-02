@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::config::Config;
 use crate::music_file::MusicFile;
@@ -70,7 +70,7 @@ fn handle_directory(
         if let Some(music_metadata) = &music_file.music_metadata {
             let vec = music_files_by_disk_number_map
                 .entry(music_metadata.disk_number)
-                .or_insert_with(Vec::new);
+                .or_default();
             vec.push(music_file);
         }
     }
@@ -84,11 +84,12 @@ fn handle_directory(
     // Getting keys out of HashMaps is unstable. To always produce the same output,
     // we need to add stability by sorting the keys and producing the output according
     // to this order.
-    let mut sorted_keys: Vec<&Option<u16>> =
-        music_files_by_disk_number_map.keys().into_iter().collect();
+    let mut sorted_keys: Vec<&Option<u16>> = music_files_by_disk_number_map.keys().collect();
     sorted_keys.sort_by(MusicFile::sort_by_disk_number);
 
-    // rename music files
+    // determine the new names of all music files *before* renaming any of them
+    // to be able to detect files that would end up with the same name
+    let mut renames: Vec<(PathBuf, String)> = Vec::new();
     for disk_number in sorted_keys {
         if let Some(music_files_by_disk_number) = music_files_by_disk_number_map.get(disk_number) {
             for music_file in music_files_by_disk_number {
@@ -102,15 +103,31 @@ fn handle_directory(
                         if config.verbose {
                             println!("Canonical name: {}", canonical_name);
                         }
-                        rename_file_or_directory(
-                            music_file.dir_entry.path(),
-                            config,
-                            &canonical_name,
-                        )
+                        let path = music_file.dir_entry.path();
+                        if let Some(new_name) = new_name(&path, config, &canonical_name) {
+                            renames.push((path, new_name));
+                        }
                     }
                     None => eprintln!("Couldn't retrieve canonical name"),
                 }
             }
+        }
+    }
+
+    // rename music files, but never several files to the same name
+    let mut name_counts: HashMap<&str, usize> = HashMap::new();
+    for (_, new_name) in &renames {
+        *name_counts.entry(new_name).or_default() += 1;
+    }
+    for (path, new_name) in &renames {
+        if name_counts[new_name.as_str()] > 1 {
+            eprintln!(
+                "Not renaming \"{}\": several files would be named \"{}\"",
+                path.to_string_lossy(),
+                new_name
+            );
+        } else {
+            rename_file_or_directory(path, config, new_name);
         }
     }
 
@@ -136,15 +153,43 @@ fn handle_directory(
             println!("Same album title: {}", album_title);
         }
         if config.rename_directory {
-            rename_file_or_directory(dir_entry.path().to_path_buf(), config, &album_title)
+            if let Some(new_name) = new_name(dir_entry.path(), config, &album_title) {
+                rename_file_or_directory(dir_entry.path(), config, &new_name)
+            }
         }
     } else if config.verbose {
         println!("Multiple album names.")
     }
 }
 
-/// Rename a file or directory name in a path
-fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
+/// Returns the sanitized (and maybe shortened) name a file or directory should get,
+/// or `None` if nothing would be left of the name but its extension
+fn new_name(old_path: &Path, config: &Config, to_name: &str) -> Option<String> {
+    // sanitize the canonical name *without* extension to catch cases like
+    // "Foo....mp3" which should become "Foo.mp3"
+    let (extension, _): (String, usize) = util::get_extension(old_path);
+    let mut short_name_stem = util::get_name_stem(to_name, &extension); // both parameters use lowercase for the extension
+    short_name_stem = util::sanitize_file_or_directory_name(&short_name_stem);
+
+    // now rebuild the name *with* the extension to be able to shorten the canonical name
+    let mut new_name = format!("{}{}", short_name_stem, extension);
+    if config.shorten_names {
+        new_name = util::shorten_names(old_path, &new_name, config);
+    }
+
+    if util::get_name_stem(&new_name, &extension).is_empty() {
+        eprintln!(
+            "Not renaming \"{}\": the new name would be empty",
+            old_path.to_string_lossy()
+        );
+        return None;
+    }
+
+    Some(new_name)
+}
+
+/// Rename a file or directory name in a path, but never overwrite another file or directory
+fn rename_file_or_directory(old_path: &Path, config: &Config, to_name: &str) {
     let old_name = old_path
         .file_name()
         .unwrap_or_else(|| {
@@ -154,18 +199,6 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
             )
         })
         .to_string_lossy();
-
-    // sanitize the canonical name *without* extension to catch cases like
-    // "Foo....mp3" which should become "Foo.mp3"
-    let (extension, _): (String, usize) = util::get_extension(&old_path);
-    let mut short_name_stem = util::get_name_stem(to_name, &extension); // both parameters use lowercase for the extension
-    short_name_stem = util::sanitize_file_or_directory_name(&short_name_stem);
-
-    // now rebuild the name *with* the extension to be able to shorten the canonical name
-    let mut to_name = format!("{}{}", short_name_stem, extension);
-    if config.shorten_names {
-        to_name = util::shorten_names(&old_path, &to_name, config);
-    }
 
     let new_path = old_path.with_file_name(OsString::from(to_name));
     let new_name = &new_path
@@ -182,10 +215,20 @@ fn rename_file_or_directory(old_path: PathBuf, config: &Config, to_name: &str) {
         return;
     }
 
+    // on case-insensitive file systems, a name differing only in case denotes the same file
+    let target_exists = fs::symlink_metadata(&new_path).is_ok();
+    if target_exists && !same_file::is_same_file(old_path, &new_path).unwrap_or(false) {
+        eprintln!(
+            "Not renaming \"{}\": \"{}\" already exists",
+            old_name, new_name
+        );
+        return;
+    }
+
     println!("Renaming \"{}\" to \"{}\"", old_name, new_name);
 
     if !config.dry_run {
-        if let Err(e) = fs::rename(&old_path, new_path) {
+        if let Err(e) = fs::rename(old_path, &new_path) {
             eprintln!("Error renaming \"{}\": {}", old_name, e);
         }
     }
