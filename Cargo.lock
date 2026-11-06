@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "mp3rename"
-version = "1.0.14-pre"
+version = "1.0.14"
 dependencies = [
  "audiotags",
  "clap",
